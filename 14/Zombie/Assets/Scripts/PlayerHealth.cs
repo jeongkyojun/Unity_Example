@@ -70,9 +70,38 @@ public class PlayerHealth : LivingEntity {
     public override void Die() {
         // LivingEntity의 Die() 실행(사망 적용)
         base.Die();
+
+        //체력 슬라이더 비활성화
+        healthSlider.gameObject.SetActive(false);
+
+        //사망음 재생
+        playerAudioPlayer.PlayOneShot(deathClip);
+
+        //애니메이터의 Die 트리거를 발동시켜 사망 애니메이션 재생
+        playerAnimator.SetTrigger("Die");
+
+        //플레이어 조작을 받는 컴포넌트 비활성화
+        playerMovement.enabled = false;
+        playerShooter.enabled = false;
     }
 
     private void OnTriggerEnter(Collider other) {
         // 아이템과 충돌한 경우 해당 아이템을 사용하는 처리
+
+        if(!dead)
+        {
+            //충돌한 상대방으로부터 IItem 컴포넌트 가져오기 시도
+            IItem item = other.GetComponent<IItem>();
+
+            //충돌한 상대방으로부터 IItem 컴포넌트 가져오기가 성공한 경우
+            if(item!=null)
+            {
+                //Use 메서드를 실행하여 아이템 적용
+                item.Use(gameObject);
+
+                //아이템 습득 소리 재생
+                playerAudioPlayer.PlayOneShot(itemPickupClip);
+            }
+        }
     }
 }
