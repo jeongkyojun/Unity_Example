@@ -38,11 +38,27 @@ public class Enemy : LivingEntity {
     }
 
     private void Awake() {
-        // 초기화
+        // 게임 오브젝트로부터 사용할 컴포넌트 가져오기
+        pathFinder = GetComponent<NavMeshAgent>();
+        enemyAnimator = GetComponent<Animator>();
+        enemyAudioPlayer = GetComponent<AudioSource>();
+
+        // 렌더러 컴포넌트는 자식 게임 오브젝트에 있으므로
+        // GetComponentInChildren() 메서드 사용
+        enemyRenderer = GetComponentInChildren<Renderer>();
     }
 
     // 적 AI의 초기 스펙을 결정하는 셋업 메서드
     public void Setup(float newHealth, float newDamage, float newSpeed, Color skinColor) {
+        // 체력 설정
+        startingHealth = newHealth;
+        health = newHealth;
+        // 공격력 설정
+        damage = newDamage;
+        // 내비메시 에이전트의 이동 속도 설정
+        pathFinder.speed = newSpeed;
+        // 렌더러가 사용 중인 머티리얼의 컬러를 변경, 외형 색이 변함
+        enemyRenderer.material.color = skinColor;
     }
 
     private void Start() {
