@@ -76,6 +76,39 @@ public class Enemy : LivingEntity {
         // 살아있는 동안 무한 루프
         while (!dead)
         {
+            if (hasTarget)
+            {
+                // 추적 대상 존재 : 경로를 갱신 및 AI 이동을 계속 진행
+                pathFinder.isStopped = false;
+                pathFinder.SetDestination(
+                    targetEntity.transform.position);
+            }
+
+            else
+            {
+                // 추적대상 없음 : AI 이동 중지
+                pathFinder.isStopped = true;
+
+                // 20 유닛의 반지름을 가진 가상의 구를 그렸을 때 구와 겹치는 모든 콜라이더를 가져옴
+                // 단, whatisTarget 레이어를 가진 콜라이더만 가져오도록 필터링
+                Collider[] colliders =
+                    Physics.OverlapSphere(transform.position, 20f, whatIsTarget);
+                // 모든 콜라이더를 순회하면서 살아 있는 LivingEntity 찾기
+                for (int i = 0; i < colliders.Length; i++)
+                {
+                    // 콜라이더로부터 LivingEntity 컴포넌트 가져오기
+                    LivingEntity livingEntity = colliders[i].GetComponent<LivingEntity>();
+
+                    // LivingEntity 컴포넌드가 존재하며, 해당 LivingEntity가 살아 있다면
+                    if(livingEntity !=null &&!livingEntity.dead)
+                    {
+                        // 추적 대상을 해당 LivingEntity로 설정
+                        targetEntity = livingEntity;
+                        // for문 루프 즉시 정지
+                        break;
+                    }
+                }
+            }
             // 0.25초 주기로 처리 반복
             yield return new WaitForSeconds(0.25f);
         }
