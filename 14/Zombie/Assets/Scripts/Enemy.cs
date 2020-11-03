@@ -116,6 +116,18 @@ public class Enemy : LivingEntity {
 
     // 데미지를 입었을때 실행할 처리
     public override void OnDamage(float damage, Vector3 hitPoint, Vector3 hitNormal) {
+        // 아직 사망하지 않은 경우에만 피격효과 재생
+        if(!dead)
+        {
+            // 공격받은 지점과 방향으로 파티클 효과 재생
+            hitEffect.transform.position = hitPoint;
+            hitEffect.transform.rotation = Quaternion.LookRotation(hitNormal);
+            hitEffect.Play();
+
+            // 피격 효과음 재생
+            enemyAudioPlayer.PlayOneShot(hitSound);
+        }
+        
         // LivingEntity의 OnDamage()를 실행하여 데미지 적용
         base.OnDamage(damage, hitPoint, hitNormal);
     }
@@ -124,6 +136,22 @@ public class Enemy : LivingEntity {
     public override void Die() {
         // LivingEntity의 Die()를 실행하여 기본 사망 처리 실행
         base.Die();
+
+        // 다른 AI를 방해하지 않도록 자신의 모든 콜라이더를 비활성화
+        Collider[] enemyColliders = GetComponents<Collider>();
+        for(int i=0; i <enemyColliders.Length;i++)
+        {
+            enemyColliders[i].enabled = false;
+        }
+
+        // AI 추적을 중지하고 내비메시 컴포넌트를 비활성화
+        pathFinder.isStopped = true;
+        pathFinder.enabled = false;
+
+        // 사망 애니메이션 재생
+        enemyAnimator.SetTrigger("Die");
+        // 사망 효과음 재생
+        enemyAudioPlayer.PlayOneShot(deathSound);
     }
 
     private void OnTriggerStay(Collider other) {
