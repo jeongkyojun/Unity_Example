@@ -155,6 +155,26 @@ public class Enemy : LivingEntity {
     }
 
     private void OnTriggerStay(Collider other) {
-        // 트리거 충돌한 상대방 게임 오브젝트가 추적 대상이라면 공격 실행   
+        // 자신이 사망하지 않았으며,
+        // 최근 공격 시점에서 timeBetAttack 이상 
+        if(!dead && Time.time >= lastAttackTime + timeBetAttack )
+        {
+            // 상대방의 LivingEntity 타입 가져오기 시도
+            LivingEntity attackTarget = other.GetComponent<LivingEntity>();
+
+            // 상대방의 LivingEntity가 자신의 추적 대상이라면 공격 실행
+            if(attackTarget != null && attackTarget == targetEntity)
+            {
+                // 최근 공격 시간 갱신
+                lastAttackTime = Time.time;
+
+                // 상대방의 피격 위치와 피격 방향을 근삿값으로 계산
+                Vector3 hitpoint = other.ClosestPointOnBounds(transform.position);
+                Vector3 hitNormal = transform.position - other.transform.position;
+
+                //공격 실행
+                attackTarget.OnDamage(damage, hitpoint, hitNormal);
+            }
+        }
     }
 }
