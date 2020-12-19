@@ -6,7 +6,7 @@ public class MovePlayer : MonoBehaviour
 {
     private Rigidbody playerRigidbody;  // rigidbody 설정
     private PlayerInput playerInput;
-    float speed = 5f;
+    float speed = 1f;
     float rotate_speed = 60f;
 
     public GameObject particle;
@@ -30,7 +30,7 @@ public class MovePlayer : MonoBehaviour
         {
             Vector3 vec = cameraRay.GetPoint(rayLength);
            // Debug.Log(vec.x + "," + vec.y + "," + vec.z);
-            //Move(vec);
+            Move(vec);
             Rotate(vec);
         }   
 
@@ -38,13 +38,6 @@ public class MovePlayer : MonoBehaviour
 
     private void Move(Vector3 vec)
     {
-        /*
-        Vector3 moveDistance =
-            playerInput.move * transform.up * speed * Time.deltaTime;
-
-        playerRigidbody.MovePosition(playerRigidbody.position + moveDistance);
-        //transform.position = new Vector3(transform.position.x + playerInput.move * deltaTime, transform.position.y , transform.position.z);
-        */
         transform.position = new Vector3(
             transform.position.x + (vec.x-transform.position.x) * Time.deltaTime * speed,
             transform.position.y,
@@ -54,14 +47,9 @@ public class MovePlayer : MonoBehaviour
     private void Rotate(Vector3 vec)
     {
         double degree = (Math.Atan(vec.z / vec.x));
-        /*
-        float turn = playerInput.rotate *rotate_speed * Time.deltaTime;
-        //리지드바디를 이용해 게임 오브젝트 회전 변경
-        playerRigidbody.rotation = playerRigidbody.rotation * Quaternion.Euler(0f,0f,-turn);
-        */
         Debug.Log(degree);
         degree = degree / 3; // degree값을 범위에 맞게 변환
-        degree *= -1;
+
         if (vec.x < 0)
         {
             degree += 1.5f;
@@ -71,11 +59,9 @@ public class MovePlayer : MonoBehaviour
             
             degree += 0.5f;
         }
-        // 0 ~ 0.5 , 0.5 ~ 1 , 1 ~ 1.5, 1.5 ~ 2
-        // 0 ~ 0.5 , 0.5 ~ 1 , 0 ~ 0.5, 0.5 ~ 1 
 
-
-        Quaternion target = Quaternion.Euler(90,0, (float)degree*180);
-        transform.rotation = Quaternion.Slerp(transform.rotation, target, 360);
+        Quaternion target = Quaternion.Euler(90,0, (float)degree*180+180);
+        transform.rotation = Quaternion.Slerp(transform.rotation, target,1); // transform.rotation의 값을 target으로 바꾼다.
+        //회전시킬거면 3D로 하자. LookAt이 편하다. 아니면 z축을 정면으로 만들던가.
     }
 }
