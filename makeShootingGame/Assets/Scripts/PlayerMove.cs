@@ -4,21 +4,28 @@ using UnityEngine;
 
 public class PlayerMove : MonoBehaviour
 {
-    private int cnt = 0;
-    private float pastTime=0;
-    private float speed = 5f;
-    PlayerInput playerInput;
+    public float speed = 5f;
+
     // Start is called before the first frame update
     void Start()
     {
-        playerInput = GetComponent<PlayerInput>();
-        cnt = 0;
-        pastTime = 0f;
+        
     }
 
     // Update is called once per frame
     void Update()
     {
-        transform.Translate(new Vector3(playerInput.rotate * Time.deltaTime*speed, playerInput.move * Time.deltaTime*speed, 0));
+        float move = Input.GetAxis("Horizontal");
+        float updown = Input.GetAxis("Vertical");
+
+        Vector3 dir = Vector3.right * move + Vector3.up * updown;
+
+        transform.Translate(dir * speed * Time.deltaTime);
+
+        //다른 방법 1
+        //transform.Translate(new Vector3(move, updown, 0) * speed * Time.deltaTime);
+
+        //다른 방법 2
+        //transform.Translate(new Vector3(move*speed*Time.deltaTime, updown * speed * Time.deltaTime, 0));
     }
 }
