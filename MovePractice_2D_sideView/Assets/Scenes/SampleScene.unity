@@ -1816,7 +1816,7 @@ GameObject:
   - component: {fileID: 2008904827}
   - component: {fileID: 2008904824}
   m_Layer: 0
-  m_Name: Circle
+  m_Name: Player
   m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1945,11 +1945,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0c9df621393c553489f9e8a0995a2ab2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  MoveSpeed: 2
-  RunSpeed: 3.5
-  DirectionRotateSpeed: 100
-  BodyRotateSpeed: 2
-  VelocityChangeSpeed: 0.01
+  speed: 10
+  jumpPower: 10
 --- !u!114 &2008904826
 MonoBehaviour:
   m_ObjectHideFlags: 0

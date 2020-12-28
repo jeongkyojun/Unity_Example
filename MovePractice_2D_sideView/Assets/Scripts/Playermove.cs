@@ -8,15 +8,20 @@ public class Playermove : MonoBehaviour
 
     private PlayerInput playerInput;
 
-    private float speed = 10f,jumpPower = 10f,RecentJumptime;
+    private bool isDash, isGround, isJump;
 
-    private bool isGround,isJump,isDash;
+    private float RecentJumptime,LeftRight;
 
-    private int LeftRight;
-
+    [Header("이동 관련")]
+    [Tooltip("이동 속도")]
+    public float speed;
+    [Tooltip("점프 힘")]
+    public float jumpPower;
     // Start is called before the first frame update
     void Start()
     {
+        speed = 5f;
+        jumpPower = 5f;
         LeftRight = 1;
         isGround = true;
         isJump = false;
@@ -36,7 +41,6 @@ public class Playermove : MonoBehaviour
         
         Move();
         Jump();
-        Dash();
     }
 
     void Jump()
@@ -62,44 +66,14 @@ public class Playermove : MonoBehaviour
                 rigidbody2D.velocity += (new Vector2(0, 10 * Time.deltaTime));
             }
         }
-
     }
+
     void Move()
     {
-        /*
-        if (transform.position.x + playerInput.rotate * Time.deltaTime * speed < 100 && transform.position.x + playerInput.rotate * Time.deltaTime * speed > -100)
-            transform.Translate(new Vector2(playerInput.rotate * Time.deltaTime * speed, 0));
-        else
-        {
-            set_return();
-        }
-        */
-        if (playerInput.rotate!=0)
-           rigidbody2D.velocity = new Vector2(speed*playerInput.rotate, 0);
-        else
-        {
-            rigidbody2D.velocity = new Vector2(0f,rigidbody2D.velocity.y);
-        }
-    }
-
-    void Dash()
-    {
-        float inputTime;
-        if (Input.GetKey(KeyCode.Z))
-        {
-            inputTime = Time.time;
-            transform.Translate(new Vector2(speed * 2.5f * Time.deltaTime*LeftRight,0));
-        }
-
-    }
-
-
-    void set_return()
-    {
-        if (transform.position.x + playerInput.rotate * Time.deltaTime * speed > 100)
-            transform.position = new Vector2(-99, transform.position.y);
-        else if (transform.position.x + playerInput.rotate * Time.deltaTime * speed < -100)
-            transform.position = new Vector2(99, transform.position.y);
+        Vector2 right = new Vector2(1f, 0.0f);
+        Vector2 up = new Vector2(0.0f, 1f);
+        Vector3 vec = playerInput.rotate * right*Time.deltaTime*speed;
+        transform.position += vec;
     }
 
     void OnTriggerEnter2D()
