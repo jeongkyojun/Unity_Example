@@ -6,6 +6,10 @@ public class EnemyMove : MonoBehaviour
 {
     public float moveSpeed = 3f;
     public Transform cube;
+    public float damage = 1000000f;
+
+
+    private bool isHit = true;
 
     int num;
     float recentTime;
@@ -22,26 +26,53 @@ public class EnemyMove : MonoBehaviour
     void Update()
     {
         transform.position += new Vector3(moveSpeed*Time.deltaTime, 0, 0);
-        if (Time.time - recentTime >= 1)
+
+    }
+
+
+    void OnTriggerEnter(Collider other)
+    {
+        Debug.Log("OnTriggerEnter");
+        if (isHit)
         {
-            recentTime = Time.time;
-            switch (num)
+            if (other.tag == "Player")
             {
-                case 0:
-                    cube.GetComponent<MeshRenderer>().material.color = new Color(1, 0, 0, 1);
-                    break;
-                case 1:
-                    cube.GetComponent<MeshRenderer>().material.color = new Color(0, 1, 0, 1);
-                    break;
-                case 2:
-                    cube.GetComponent<MeshRenderer>().material.color = new Color(0, 0, 1, 1);
-                    break;
-                case 3:
-                    cube.GetComponent<MeshRenderer>().material.color = new Color(1, 1, 0, 1);
-                    break;
+                
+                PlayerMove playerMove = other.GetComponent<PlayerMove>();
+                Debug.Log("offset : " + other.contactOffset);
+                if (playerMove!=null)
+                {
+                    //Vector3 hitPoint = other.contactOffset;
+                    //Vector3 hitNormal = other.contactOffset - other.transform.position;
+                    //playerMove.OnDamage(damage, hitPoint, hitNormal);
+                }
             }
-            num++;
-            num = num % 4;
+            //isHit = false;
         }
+    }
+    void OnCollisionEnter(Collision other)
+    {
+        Debug.Log("OnCollisionEnter");
+        if (isHit)
+        {
+            if (other.collider.tag =="Player" )
+            {
+                
+
+                
+            }
+            //isHit = false;
+        }
+    }
+    void OnTriggerExit(Collider collision)
+    {
+        Debug.Log("OnTriggerExit");
+        isHit = true;
+    }
+
+    void OnCollisionExit(Collision collision)
+    {
+        Debug.Log("OnCollisionExit");
+        isHit = true;
     }
 }

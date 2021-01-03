@@ -8,6 +8,8 @@ TagManager:
   - ChasingEnemy
   - usedObstacle
   - ObstacleThrowing
+  - Ground
+  - speedUp
   layers:
   - Default
   - TransparentFX
