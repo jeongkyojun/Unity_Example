@@ -7,13 +7,18 @@ public class PlayerMove : MonoBehaviour
 
     [Header("이동관련")]
     public float speed = 5f;//이동속도
-    public float jumpPower = 5f;
+    public float jumpPower = 8f;
+    public float Gravity = 1;
 
     Rigidbody playerRigidbody;
     SpriteRenderer playerSprite;
 
+    private float gravitySpeed = 9.8f;
+    private bool isGrab = false;
     private bool isGrounded = true;
     private int jumpCnt = 2;
+
+    GameObject LopeHandle;
     // Start is called before the first frame update
     void Start()
     {
@@ -24,6 +29,7 @@ public class PlayerMove : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        
         Move();
         Jump();
     }
@@ -43,7 +49,20 @@ public class PlayerMove : MonoBehaviour
         {
             jumpCnt++;
             isGrounded = false;
-            playerRigidbody.velocity = new Vector3(0f, jumpPower, 0f);
+            playerRigidbody.velocity = Vector3.up * jumpPower;
+        }
+
+        if (!isGrounded)
+        {
+            playerRigidbody.velocity -= Vector3.up* gravitySpeed * Time.deltaTime * Gravity;
+        }
+    }
+
+    void Grab()
+    {
+        if(isGrab)
+        {
+            transform.position.y = LopeHandle.transform.position.y - 0.3;
         }
     }
 
@@ -59,6 +78,15 @@ public class PlayerMove : MonoBehaviour
         {
             Debug.Log("wall jump!");
             jumpCnt=1;
+        }
+    }
+
+    void OnTriggerEnter(Collider other)
+    {
+        if(other.tag == "LopeHandle")
+        {
+            isGrab = false;
+            LopeHandle = other;
         }
     }
 }

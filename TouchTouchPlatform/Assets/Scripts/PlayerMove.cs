@@ -62,7 +62,6 @@ public class PlayerMove : MonoBehaviour
     {
         if (!onEnterCollision) // 1회만 부딫힘 판정을 받기위해 설정
         {
-            Debug.Log("touch!");
             onEnterCollision = true;
             if (collider.collider.CompareTag("OrangeBtn")) // 접촉 태그가 주황버튼일 경우
             {
@@ -79,7 +78,7 @@ public class PlayerMove : MonoBehaviour
             Vector3 contactVec = Vector3.zero;
         }
 
-        if (collider.contacts[0].point.y<transform.position.y)
+        if (collider.contacts[0].normal.y>=0.7)
         {
             // 접촉 부분이 원의 중심보다 작을 경우 바닥에 닿은 것으로 취급
             onGround = true; 
