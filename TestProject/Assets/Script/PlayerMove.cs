@@ -7,7 +7,7 @@ public class PlayerMove : MonoBehaviour
 
     [Header("이동관련")]
     public float speed = 5f;//이동속도
-    public float jumpPower = 8f;
+    public float jumpPower = 5f;
     public float Gravity = 1;
 
     Rigidbody playerRigidbody;
@@ -15,7 +15,7 @@ public class PlayerMove : MonoBehaviour
 
     private float gravitySpeed = 9.8f;
     private bool isGrab = false;
-    private bool isGrounded = true;
+    private bool isGrounded = false;
     private int jumpCnt = 2;
 
     GameObject LopeHandle;
@@ -24,27 +24,29 @@ public class PlayerMove : MonoBehaviour
     {
         playerRigidbody = GetComponent<Rigidbody>();
         playerSprite = GetComponent<SpriteRenderer>();
+        playerRigidbody.UseGravity = false;
     }
 
     // Update is called once per frame
     void Update()
     {
-        
         Move();
         Jump();
     }
 
     void Move()
     {
-            float move = Input.GetAxis("Horizontal");
-            Vector3 right = new Vector3(1, 0, 0);
-            Vector3 vec = right * speed * Time.deltaTime * move;
+        Debug.Log("Move");
+        float move = Input.GetAxis("Horizontal");
+        Vector3 right = new Vector3(1, 0, 0);
+        Vector3 vec = right * speed * Time.deltaTime * move;
 
-            transform.position += vec;
+        transform.position += vec;
     }
 
     void Jump()
     {
+        Debug.Log("Jump");
         if(Input.GetKeyDown(KeyCode.Space)&&jumpCnt<2)
         {
             jumpCnt++;
@@ -62,7 +64,8 @@ public class PlayerMove : MonoBehaviour
     {
         if(isGrab)
         {
-            transform.position.y = LopeHandle.transform.position.y - 0.3;
+            playerRigidbody.velocity = new Vector3(0f,0f,0f);
+            transform.position = new Vector3(LopeHandle.transform.position.x,LopeHandle.transform.position.y - 0.3f,0f);
         }
     }
 
@@ -83,10 +86,12 @@ public class PlayerMove : MonoBehaviour
 
     void OnTriggerEnter(Collider other)
     {
+        Debug.Log("OntriggerEnter : " + other.tag);
         if(other.tag == "LopeHandle")
         {
-            isGrab = false;
-            LopeHandle = other;
+            isGrab = true;
+            LopeHandle = other.gameObject;
+            Debug.Log(LopeHandle.transform.position);
         }
     }
 }
