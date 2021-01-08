@@ -9,7 +9,7 @@ public class PlayerMove : MonoBehaviour
 
     private int jumpCount = 0;
 
-    private bool isGrounded = false;
+    public bool isGrounded = false;
     private bool isDead = false;
 
     private Vector3 right = new Vector3(1, 0, 0);
@@ -79,7 +79,6 @@ public class PlayerMove : MonoBehaviour
 
     void OnCollisionEnter(Collision collision)
     {
-        Debug.Log("Hit! ( "+collision.collider.tag+" )");
         if (collision.contacts[0].normal.y > 0.7f)
         {
             isGrounded = true;

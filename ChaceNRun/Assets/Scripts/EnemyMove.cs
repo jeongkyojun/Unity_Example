@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class EnemyMove : MonoBehaviour
 {
+    public GameObject Lookingsight;
     public float moveSpeed = 3f;
     public Transform cube;
     public float damage = 1000000f;
@@ -32,47 +33,21 @@ public class EnemyMove : MonoBehaviour
 
     void OnTriggerEnter(Collider other)
     {
-        Debug.Log("OnTriggerEnter");
-        if (isHit)
-        {
-            if (other.tag == "Player")
-            {
-                
-                PlayerMove playerMove = other.GetComponent<PlayerMove>();
-                Debug.Log("offset : " + other.contactOffset);
-                if (playerMove!=null)
-                {
-                    //Vector3 hitPoint = other.contactOffset;
-                    //Vector3 hitNormal = other.contactOffset - other.transform.position;
-                    //playerMove.OnDamage(damage, hitPoint, hitNormal);
-                }
-            }
-            //isHit = false;
-        }
+        Debug.Log("OnTriggerEnter(Enemy)");
+        //Debug.Log(other.tag);
     }
     void OnCollisionEnter(Collision other)
     {
-        Debug.Log("OnCollisionEnter");
-        if (isHit)
-        {
-            if (other.collider.tag =="Player" )
-            {
-                
-
-                
-            }
-            //isHit = false;
-        }
+        Debug.Log("OnCollisionEnter(Enemy)");
+        //Debug.Log(other.collider.tag);
     }
     void OnTriggerExit(Collider collision)
-    {
-        Debug.Log("OnTriggerExit");
-        isHit = true;
+    { 
+       
     }
 
     void OnCollisionExit(Collision collision)
     {
-        Debug.Log("OnCollisionExit");
-        isHit = true;
+
     }
 }

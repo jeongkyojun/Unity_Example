@@ -10,6 +10,7 @@ TagManager:
   - ObstacleThrowing
   - Ground
   - speedUp
+  - Look
   layers:
   - Default
   - TransparentFX
