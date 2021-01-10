@@ -6,7 +6,9 @@ using System;
 public class PlayerMove : MonoBehaviour
 {
     Rigidbody rigidbody;
-    SpriteRenderer spriteRenderer;
+    Animator animator;
+    //SpriteRenderer spriteRenderer;
+    
     public int StatusColor = 1;//1 : 빨강, 2 : 주황, 3 : 파랑
     public float speed = 3f;
     public float jumpPower = 4f;
@@ -18,8 +20,9 @@ public class PlayerMove : MonoBehaviour
     void Start()
     {
         rigidbody = GetComponent<Rigidbody>();
-        spriteRenderer = GetComponent<SpriteRenderer>();
-        spriteRenderer.color = new Color(255, 0, 0,255);
+        animator = GetComponent<Animator>();
+        //spriteRenderer = GetComponent<SpriteRenderer>();
+        //spriteRenderer.color = new Color(255, 0, 0,255);
     }
 
     // Update is called once per frame
@@ -62,18 +65,19 @@ public class PlayerMove : MonoBehaviour
     {
         if (!onEnterCollision) // 1회만 부딫힘 판정을 받기위해 설정
         {
+            animator.SetTrigger("run");
             onEnterCollision = true;
             if (collider.collider.CompareTag("OrangeBtn")) // 접촉 태그가 주황버튼일 경우
             {
                 Debug.Log("Orange");
                 StatusColor = 2;
-                spriteRenderer.color = new Color(1,0.5f,0f,1); // 주황색
+                //spriteRenderer.color = new Color(1,0.5f,0f,1); // 주황색
             }
             if (collider.collider.CompareTag("BlueBtn")) // 접촉 태그가 파란버튼일 경우
             {
                 Debug.Log("Blue");
                 StatusColor = 3;
-                spriteRenderer.color = new Color(0, 0, 1, 1); // 파랑색
+                //spriteRenderer.color = new Color(0, 0, 1, 1); // 파랑색
             }
             Vector3 contactVec = Vector3.zero;
         }
