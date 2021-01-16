@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System;
 
 public class MonoEyeScript : MonoBehaviour
 {
@@ -8,10 +9,15 @@ public class MonoEyeScript : MonoBehaviour
     Vector3 firstPosition;
     Vector3 playerPosition;
 
+    Ray ray;
+    RaycastHit hit;
+
     float attackTime;
+    float attackingTime;
     bool find_player = false;
 
     bool isActive = false;
+    bool isAttack = false;
     float direction = -1f;
 
     float speed = 10f;
@@ -30,7 +36,15 @@ public class MonoEyeScript : MonoBehaviour
             if (find_player)
             {
                 if (Time.time - attackTime > 3)
+                {
+                    if(!isAttack)
+                    {
+                        attackingTime = Time.time;
+                        isAttack = true;
+                        Debug.Log("Attack!");
+                    }
                     Attack();
+                }
             }
         }
         else
@@ -49,7 +63,7 @@ public class MonoEyeScript : MonoBehaviour
             direction = 0;
 
         eyes.transform.position += Vector3.right * direction * speed * Time.deltaTime;
-        //Debug.Log(eyes.transform.position.x);
+
         if (!find_player)
         {
             if ((direction > 0 && eyes.transform.position.x > playerPosition.x) || (direction < 0 && eyes.transform.position.x < playerPosition.x))
@@ -63,8 +77,15 @@ public class MonoEyeScript : MonoBehaviour
 
     void Attack()
     {
-        attackTime = Time.time;
-        Debug.Log("Attack!");
+
+        Physics.Raycast(eyes.transform.position, -1 * Vector3.up, out hit , 20f);
+        Debug.DrawRay(eyes.transform.position, -1 * Vector3.up * hit.distance, Color.blue);
+
+        if (Time.time - attackingTime > 0.5)
+        {
+            isAttack = false;
+            attackTime = Time.time;
+        }
     }
 
     void OnTriggerEnter(Collider other)
@@ -84,5 +105,7 @@ public class MonoEyeScript : MonoBehaviour
     void OnTriggerExit()
     {
         isActive = false;
+        find_player = false;
+        isAttack = false;
     }
 }
