@@ -8,6 +8,7 @@ TagManager:
   - Monster1
   - Obstacle
   - sight
+  - Setup
   layers:
   - Default
   - TransparentFX

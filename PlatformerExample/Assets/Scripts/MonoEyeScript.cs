@@ -66,6 +66,7 @@ public class MonoEyeScript : MonoBehaviour
 
         if (!find_player)
         {
+            // find 조건 만족이 아직 안됨, 나중에 수정 필요!
             if ((direction > 0 && eyes.transform.position.x > playerPosition.x) || (direction < 0 && eyes.transform.position.x < playerPosition.x))
             {
                 Debug.Log("Find");
