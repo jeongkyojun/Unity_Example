@@ -42,13 +42,14 @@ public class CubeDownScript : MonoBehaviour
     {
         if(isDown && other.collider.tag == "Player")
         {
+            Debug.Log("Down");
             transform.position -= Vector3.up * speed * Time.deltaTime;
         }
     }
 
     void OnCollisionExit(Collision other)
     {
+        Debug.Log("Exit");
         isDown = false;
-        
     }
 }

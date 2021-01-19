@@ -10,8 +10,11 @@ public class TrapCaboom : MonoBehaviour
     float fallingSpeed = 15f;
     float speed = 5f;
     Vector3 firstPos;
+
+    Rigidbody rigid;
     void Start()
     {
+        rigid = GetComponent<Rigidbody>();
         firstPos = transform.position;
     }
 
@@ -35,18 +38,26 @@ public class TrapCaboom : MonoBehaviour
         transform.position += set;
     }
 
-    void Move(Vector3 firstPos)
+    void Move(Vector3 firstPos) 
     {
         if(firstPos.y > transform.position.y)
         {
             transform.position += Vector3.up * speed * Time.deltaTime;
         }
+        else
+        {
+            isStop = false;
+            isSetup = false;
+            gameObject.tag = "Untagged";
+        }
     }
 
     void OnCollisionEnter(Collision other)
     {
+        Debug.Log(other.collider.tag);
         if(other.collider.tag != "Player")
         {
+            rigid.velocity = Vector3.zero;
             isStop = true;
         }
     }

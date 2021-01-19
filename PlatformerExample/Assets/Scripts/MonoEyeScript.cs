@@ -81,6 +81,10 @@ public class MonoEyeScript : MonoBehaviour
 
         Physics.Raycast(eyes.transform.position, -1 * Vector3.up, out hit , 20f);
         Debug.DrawRay(eyes.transform.position, -1 * Vector3.up * hit.distance, Color.blue);
+        if(hit.collider.tag == "Player")
+        {
+            Destroy(hit.collider.gameObject);
+        }
 
         if (Time.time - attackingTime > 0.5)
         {

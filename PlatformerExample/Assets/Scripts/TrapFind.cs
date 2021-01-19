@@ -21,6 +21,11 @@ public class TrapFind : MonoBehaviour
     void OnTriggerEnter(Collider other)
     {
         Debug.Log("findPlayer");
-        trapCaboom.isSetup = true;
+        if (other.tag == "Player")
+        {
+            trap.tag = "Dead";
+            Debug.Log("findPlayer");
+            trapCaboom.isSetup = true;
+        }
     }
 }
