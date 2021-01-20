@@ -83,7 +83,7 @@ public class MonoEyeScript : MonoBehaviour
         Debug.DrawRay(eyes.transform.position, -1 * Vector3.up * hit.distance, Color.blue);
         if(hit.collider.tag == "Player")
         {
-            Destroy(hit.collider.gameObject);
+            //Destroy(hit.collider.gameObject);
         }
 
         if (Time.time - attackingTime > 0.5)

@@ -14,6 +14,8 @@ public class PlayerInput : MonoBehaviour
 
     public bool leftD,rightD, jumpD, dashD, leftU,rightU, jumpU, dashU;
 
+    public bool MoveLock;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -23,6 +25,11 @@ public class PlayerInput : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (Input.GetKeyDown("x"))
+            MoveLock = true;
+        if (Input.GetKeyUp("x"))
+            MoveLock = false;
+
         moveA = Input.GetAxis(InputAxisMove);
 
         leftD = Input.GetKeyDown("left");

@@ -25,7 +25,10 @@ public class PlayerView : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        Move();
+        if (!playerInput.MoveLock)
+        {
+            Move();
+        }
         Jump();
     }
 
@@ -45,7 +48,7 @@ public class PlayerView : MonoBehaviour
             playerModel.jumpCnt++;
             playerModel.isJump = true;
             Vector3 jumpPosition = up * playerModel.jumpPower;
-            playerRigidBody.velocity += jumpPosition;
+            playerRigidBody.velocity = new Vector3(playerRigidBody.velocity.x, jumpPosition.y, 0);
         }
 
         if (playerInput.jumpU)
@@ -70,7 +73,7 @@ public class PlayerView : MonoBehaviour
     {
         if(other.tag == "Dead")
         {
-            Destroy(gameObject);
+            //Destroy(gameObject);
         }
     }
 }
