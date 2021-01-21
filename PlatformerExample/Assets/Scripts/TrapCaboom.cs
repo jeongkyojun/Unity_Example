@@ -14,8 +14,8 @@ public class TrapCaboom : MonoBehaviour
     Rigidbody rigid;
     void Start()
     {
-        rigid = GetComponent<Rigidbody>();
-        firstPos = transform.position;
+        rigid = GetComponent<Rigidbody>(); // rigid
+        firstPos = transform.position; // 처음 위치
     }
 
     // Update is called once per frame
@@ -48,7 +48,7 @@ public class TrapCaboom : MonoBehaviour
         {
             isStop = false;
             isSetup = false;
-            gameObject.tag = "Untagged";
+            //gameObject.tag = "Untagged";
         }
     }
 
@@ -59,6 +59,7 @@ public class TrapCaboom : MonoBehaviour
         {
             rigid.velocity = Vector3.zero;
             isStop = true;
+            gameObject.tag = "Untagged";
         }
     }
 }

@@ -12,6 +12,8 @@ public class PlayerView : MonoBehaviour
 
     Rigidbody playerRigidBody;
 
+
+
     // Start is called before the first frame update
     void Start()
     {
@@ -32,11 +34,13 @@ public class PlayerView : MonoBehaviour
         Jump();
     }
 
+
     void Move()
     {
         Vector3 movePosition = right * playerModel.speed * playerInput.moveA * Time.deltaTime;
 
         playerRigidBody.MovePosition(playerRigidBody.position + movePosition);
+
     }
        
     void Jump()

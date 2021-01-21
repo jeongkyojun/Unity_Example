@@ -18,6 +18,8 @@ public class CameraMove : MonoBehaviour
 
     float distance = 10f; // 최대 이동 거리
 
+    //float speed = 8f;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -26,10 +28,11 @@ public class CameraMove : MonoBehaviour
         isRight = false;
         isUp = false;
         isDown = false;
+        isHorizon = false;
     }
 
     // Update is called once per frame
-    void Update()
+    void LateUpdate()
     {
         if(Input.GetKeyDown("x"))
         {
@@ -111,7 +114,7 @@ public class CameraMove : MonoBehaviour
 
     void MoveY(Vector3 point)
     {
-        if(Math.Abs(point.y - transform.position.y) > 0.1f)
+        if (Math.Abs(point.y - transform.position.y) > 0.1f)
             transform.position += Vector3.up * (point.y - transform.position.y) * Time.deltaTime;
     }
 

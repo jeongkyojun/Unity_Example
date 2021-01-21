@@ -32,7 +32,7 @@ public class MonoEyeScript : MonoBehaviour
     {
         if(isActive)
         {
-            Move(playerPosition);
+            Move();
             if (find_player)
             {
                 if (Time.time - attackTime > 3)
@@ -50,30 +50,54 @@ public class MonoEyeScript : MonoBehaviour
         else
         {
             Move(firstPosition);
+            find_player = false;
         }
     }
 
-    void Move(Vector3 playerPosition)
+    void Move() //추적
     {
-        if (playerPosition.x < eyes.transform.position.x)
+        if (Math.Abs(playerPosition.x - eyes.transform.position.x) < 0.1f)
+        {
+            direction = 0;
+        }
+        else if (playerPosition.x < eyes.transform.position.x)
             direction = -1;
         else if (playerPosition.x > eyes.transform.position.x)
             direction = 1;
-        else
-            direction = 0;
+
 
         eyes.transform.position += Vector3.right * direction * speed * Time.deltaTime;
 
         if (!find_player)
         {
             // find 조건 만족이 아직 안됨, 나중에 수정 필요!
-            if ((direction > 0 && eyes.transform.position.x > playerPosition.x) || (direction < 0 && eyes.transform.position.x < playerPosition.x))
+            if (Math.Abs(eyes.transform.position.x - playerPosition.x) < 0.1f)
             {
                 Debug.Log("Find");
                 attackTime = Time.time;
                 find_player = true;
             }
         }
+    }
+
+    void Move(Vector3 firstPosition) // 원점 복귀
+    {
+        if(Math.Abs(firstPosition.x - eyes.transform.position.x)<0.1f)
+        {
+            direction = 0;
+        }
+        else if (firstPosition.x < eyes.transform.position.x)
+            direction = -1;
+        else if (firstPosition.x > eyes.transform.position.x)
+            direction = 1;
+ 
+        eyes.transform.position += Vector3.right * direction * speed * Time.deltaTime;
+
+        if (Math.Abs(eyes.transform.position.x - firstPosition.x) < 0.1f)
+        {
+            Debug.Log("Return");
+        }
+
     }
 
     void Attack()
