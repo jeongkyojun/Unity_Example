@@ -852,6 +852,8 @@ MonoBehaviour:
   bulletBelt: 0000000000000000000000000000000000000000
   choicebullet: 0
   maxbulletnum: 5
+  bulletFactory: {fileID: 2617781364171596469, guid: dc2afacded93bd44186d231dc3320bf8,
+    type: 3}
 --- !u!54 &1727273519
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -866,7 +868,7 @@ Rigidbody:
   m_UseGravity: 1
   m_IsKinematic: 0
   m_Interpolate: 0
-  m_Constraints: 112
+  m_Constraints: 120
   m_CollisionDetection: 0
 --- !u!65 &1727273520
 BoxCollider:

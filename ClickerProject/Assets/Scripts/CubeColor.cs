@@ -17,10 +17,11 @@ public class CubeColor : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        // 큐브의 색을 변환
         cubeColor.material.color = gameManager.bulletBeltColor(tagToNum(gameObject.tag));
     }
 
-    int tagToNum(string tag)
+    int tagToNum(string tag) // 태그에 맞게 숫자를 반환
     {
         switch (tag)
         {
