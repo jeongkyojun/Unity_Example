@@ -849,6 +849,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e3b8782cbb2d5ad4e8c165761d300b10, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  bullet: []
   bulletBelt: 0000000000000000000000000000000000000000
   choicebullet: 0
   maxbulletnum: 5

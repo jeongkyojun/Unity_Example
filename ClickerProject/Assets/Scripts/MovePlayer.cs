@@ -5,23 +5,36 @@ using static UnityEngine.Time;
 
 public class MovePlayer : MonoBehaviour
 {
+    public GameObject[] bullet;
+    
     // 입력 관련
     int shootingBtnNum = 0;
     string moveBtnName = "Horizontal";
     string jumpBtnName = "up";
+    string dashBtnName = "z";
 
     bool mouseBtn0 = false;
     bool mouseBtn0up = false;
     bool jump = false;// 점프키를 누르고 있는가를 확인
-    bool bulletRight = false;
-    bool bulletLeft = false;
-     
     bool jumpCont; // 점프키를 꾹 누르고 있는가를 확인
 
-    float move;
+    bool dash = false;
+    bool dashCont;
 
-    float speed = 1f;
+    bool bulletRight = false;
+    bool bulletLeft = false;
+    
+
+    float move; // 좌,우 이동키 인식(GetAxis)
+    float updown; // 상,하 이동키 인식(GetAxis)
+    int gravityDir = 1;
+
+    float speed = 3f;
     float rotate_speed = 60f;
+
+
+    bool isDash = false;
+    bool isMove = true;
 
     // 좌표를 얻기 위한 가상의 평면 생성
     Plane GroupPlane = new Plane(Vector3.forward, Vector3.zero);
@@ -57,8 +70,55 @@ public class MovePlayer : MonoBehaviour
     {
         InputManager(); // 입력 관련
         Shooting(); // 쏘는 행위 관련
-        Move(); // 움직임 관련
+        if(isMove)
+            Move(); // 움직임 관련
         bulletChange(); // 총알 변환 관련
+
+        GravityChange();
+    }
+
+    private void GravityChange()
+    {
+        if(updown<0)
+        {
+            if (gravityDir != 1)
+            {
+                playerRigidbody.useGravity = true;
+                gravityDir = 1;
+                Physics.gravity = Vector3.up * gravityDir * -9.8f;
+            }
+        }
+        if(updown>0)
+        {
+            if (gravityDir != -1)
+            {
+                playerRigidbody.useGravity = true;
+                gravityDir = -1;
+                Physics.gravity = Vector3.up * gravityDir * -9.8f;
+            }
+        }
+        if(dash)
+        {
+            if(gravityDir!=0)
+            {
+                isDash = true;
+                isMove = false;
+                gravityDir = 0;
+                Physics.gravity = Vector3.right * gravityDir * -9.8f;
+                playerRigidbody.velocity = Vector3.right * 5;
+                if (playerRigidbody.velocity.x == 0)
+                    isMove = true;
+                Invoke("GravityReturn", 1f);
+            }
+        }
+    }
+
+    void GravityReturn()
+    {
+        gravityDir = 1;
+        isDash = false;
+        isMove = true;
+        Physics.gravity = Vector3.up * gravityDir * -9.8f;
     }
 
     private void InputManager()
@@ -66,6 +126,7 @@ public class MovePlayer : MonoBehaviour
         // 입력을 받는 기능 집합
         jumpCont = Input.GetKeyDown(jumpBtnName); // 점프키를 눌렀을 때
         mouseBtn0up = Input.GetMouseButtonUp(shootingBtnNum); // 마우스 왼쪽키를 눌렀을 때
+        dashCont = Input.GetKeyDown(dashBtnName);
 
         if (Input.GetMouseButtonDown(shootingBtnNum)) // 마우스키를 누르는 동안 mouseBtn0는 true
             mouseBtn0 = true;
@@ -74,11 +135,17 @@ public class MovePlayer : MonoBehaviour
 
         if (jumpCont) // 점프키를 누르는 동안 true
             jump = true;
-
         if (Input.GetKeyUp(jumpBtnName))
             jump = false;
 
+        if (dashCont)
+            dash = true;
+        if (Input.GetKeyUp(dashBtnName))
+            dash = false;
+
         move = Input.GetAxis(moveBtnName);
+
+        updown = Input.GetAxis("Vertical");
 
         bulletLeft = Input.GetKeyDown("q");
         bulletRight = Input.GetKeyDown("e");
