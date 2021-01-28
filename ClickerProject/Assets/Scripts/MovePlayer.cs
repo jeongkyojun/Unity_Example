@@ -5,16 +5,20 @@ using static UnityEngine.Time;
 
 public class MovePlayer : MonoBehaviour
 {
-    public GameObject[] bullet;
-    
     // 입력 관련
-    int shootingBtnNum = 0;
+    int shootingBtnNum = 0; // 왼쪽
+    int shootingBtnNumR = 1; //오른쪽
+
     string moveBtnName = "Horizontal";
     string jumpBtnName = "up";
     string dashBtnName = "z";
 
     bool mouseBtn0 = false;
     bool mouseBtn0up = false;
+
+    bool mouseBtn2 = false;
+    bool mouseBtn2up = false;
+
     bool jump = false;// 점프키를 누르고 있는가를 확인
     bool jumpCont; // 점프키를 꾹 누르고 있는가를 확인
 
@@ -51,6 +55,7 @@ public class MovePlayer : MonoBehaviour
     public int choicebullet = 0, maxbulletnum = 5;
 
     public GameObject bulletFactory; // bullet 프리팹을 지정하는 오브젝트
+    public GameObject bulletFactory2; // bullet2 프리팹을 지정하는 오브젝트
 
     void Start()
     {
@@ -69,9 +74,14 @@ public class MovePlayer : MonoBehaviour
     void Update()
     {
         InputManager(); // 입력 관련
+
         Shooting(); // 쏘는 행위 관련
+
+        ShootingRight(); // 쏘는 행위 2 관련
+
         if(isMove)
             Move(); // 움직임 관련
+
         bulletChange(); // 총알 변환 관련
 
         GravityChange();
@@ -125,6 +135,7 @@ public class MovePlayer : MonoBehaviour
     {
         // 입력을 받는 기능 집합
         jumpCont = Input.GetKeyDown(jumpBtnName); // 점프키를 눌렀을 때
+        mouseBtn2up = Input.GetMouseButtonUp(shootingBtnNumR); // 마우스 오른쪽키를 눌렀을 때
         mouseBtn0up = Input.GetMouseButtonUp(shootingBtnNum); // 마우스 왼쪽키를 눌렀을 때
         dashCont = Input.GetKeyDown(dashBtnName);
 
@@ -132,6 +143,12 @@ public class MovePlayer : MonoBehaviour
             mouseBtn0 = true;
         if (mouseBtn0up)// 떼면 false
             mouseBtn0 = false;
+
+        if (Input.GetMouseButtonDown(shootingBtnNumR))
+            mouseBtn2 = true;
+        if (mouseBtn2up)
+            mouseBtn2 = false;
+
 
         if (jumpCont) // 점프키를 누르는 동안 true
             jump = true;
@@ -242,6 +259,7 @@ public class MovePlayer : MonoBehaviour
                     Debug.Log("Nothing Hit"); // 안맞은 경우, 로그만 출력
                 }
                 */
+
                 bulletBelt[choicebullet]--; // 쏜 경우, 총알을 하나 줄인다.
             }
             else
@@ -256,6 +274,44 @@ public class MovePlayer : MonoBehaviour
             shootingPath.SetPositions(line_2); // 아닌경우, 궤적을 없앤다.
         }
     }
+
+    private void ShootingRight()
+    {
+        if (mouseBtn2)
+        {
+            // 카메라 시점에서 마우스에 닿는 좌표와 이어지는 선 수신 (픽셀 기준)
+            // z축을 일직선으로 쏘는 광선 cameraRay를 생성
+            Ray cameraRay = Camera.main.ScreenPointToRay(Input.mousePosition);
+
+            float rayLength; // ray의 길이를 받는 선
+            if (GroupPlane.Raycast(cameraRay, out rayLength)) // z축이 0인 가상의 평면과 교차하는경우
+            {
+                shootingdir = cameraRay.GetPoint(rayLength); // 끝 점을 저장받는다.
+
+                line_2[0] = transform.position; // 선의 맨 처음은 자신의 위치
+                line_2[1] = shootingdir; // 선의 맨 끝은 목적지
+                shootingPath.SetPositions(line_2); // 궤적을 그린다.
+            }
+        }
+        else if (mouseBtn2up) // 마우스를 눌렀다 뗐을때, 발사된다.
+        {
+            GameObject bullet2 = Instantiate(bulletFactory2);
+
+            float angle = Mathf.Atan((shootingdir - transform.position).y / (shootingdir - transform.position).x);
+
+            if ((shootingdir - transform.position).x < 0)
+                angle += Mathf.PI;
+
+            bullet2.transform.position = 1.5f * (new Vector3(Mathf.Cos(angle), Mathf.Sin(angle), 0)) + transform.position;
+        }
+        else
+        {
+            line_2[0] = transform.position;
+            line_2[1] = transform.position;
+            shootingPath.SetPositions(line_2); // 아닌경우, 궤적을 없앤다.
+        }
+    }
+
     private void Move()
     {
         Vector3 movedir = move * Vector3.right * speed;
