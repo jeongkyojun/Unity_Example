@@ -34,6 +34,7 @@ public class MovePlayer : MonoBehaviour
     int gravityDir = 1;
 
     float speed = 3f;
+    float jumpPower = 10f;
     float rotate_speed = 60f;
 
 
@@ -57,6 +58,9 @@ public class MovePlayer : MonoBehaviour
     public GameObject bulletFactory; // bullet 프리팹을 지정하는 오브젝트
     public GameObject bulletFactory2; // bullet2 프리팹을 지정하는 오브젝트
 
+
+    Vector3 dir;
+
     void Start()
     {
         playerRigidbody = GetComponent<Rigidbody>(); // rigidbody 할당
@@ -73,6 +77,8 @@ public class MovePlayer : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        dir = playerRigidbody.velocity;
+
         InputManager(); // 입력 관련
 
         Shooting(); // 쏘는 행위 관련
@@ -80,11 +86,13 @@ public class MovePlayer : MonoBehaviour
         ShootingRight(); // 쏘는 행위 2 관련
 
         if(isMove)
-            Move(); // 움직임 관련
+            //Move(); // 움직임 관련
+
+        Jump();
 
         bulletChange(); // 총알 변환 관련
 
-        GravityChange();
+        //GravityChange();
     }
 
     private void GravityChange()
@@ -319,6 +327,15 @@ public class MovePlayer : MonoBehaviour
         playerRigidbody.velocity = movedir + playerRigidbody.velocity.y * Vector3.up;
     }
 
+    private void Jump()
+    {
+        if(jumpCont)
+        {
+            Debug.Log("jump!");
+            playerRigidbody.velocity = playerRigidbody.velocity.x * Vector3.right + Vector3.up * jumpPower;
+        }
+    }
+
     private void bulletChange()
     {
         if(bulletLeft)
@@ -339,5 +356,21 @@ public class MovePlayer : MonoBehaviour
             }
             Debug.Log(choicebullet + " Right");
         }
+    }
+
+    void OnCollisionEnter(Collision collision)
+    {
+        Debug.Log(collision.contacts[0].normal);
+        Debug.Log(dir); // dir은 플레이어의 직전 프레임 속도
+        float sinT = collision.contacts[0].normal.y;
+        float cosT = collision.contacts[0].normal.x;
+        float sin2T = 2 * sinT * cosT;
+        float cos2T = (cosT * cosT) - (sinT * sinT);
+        // 2t-a -> cos(2t-a-PI), sin(2t-a-PI) cosPI = -1, sinPI = 0
+        // 즉, cos(2t-a) * -1  , sin(2t-a) * -1 이 된다.
+        playerRigidbody.velocity = new Vector3((cos2T * dir.x) + (sin2T * dir.y),
+            (sin2T * dir.x) - (cos2T * dir.y),
+            0) * -1;
+        Debug.Log(dir);
     }
 }

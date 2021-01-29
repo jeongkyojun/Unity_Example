@@ -46,7 +46,7 @@ public class normalBulletCode : MonoBehaviour
     {
 
         Debug.Log(collision.contacts[0].normal);
-        Debug.Log(dir);
+        Debug.Log(dir); // dir은 Vector3 자료형 (이동하는 방향)
         float sinT = collision.contacts[0].normal.y;
         float cosT = collision.contacts[0].normal.x;
 
@@ -61,7 +61,6 @@ public class normalBulletCode : MonoBehaviour
             0) * -1;
 
         Debug.Log(dir);
-        dirLen = Mathf.Sqrt(Mathf.Pow(dir.x, 2) + Mathf.Pow(dir.y, 2)); // 방향에 따른 속도 측정 기준 
-
+        dirLen = Mathf.Sqrt(Mathf.Pow(dir.x, 2) + Mathf.Pow(dir.y, 2)); // 방향에 따른 속도 측정 기준 dirLen 은 float 자료형
     }
 }
