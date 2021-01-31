@@ -65,7 +65,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\Scripts\InputManager.cs" />
-    <Compile Include="Assets\Scripts\JsonManager.cs" />
     <Compile Include="Assets\Scripts\PlayerMove.cs" />
     <Reference Include="UnityEngine">
       <HintPath>D:/download/Unity/2019.4.16f1/Editor/Data/Managed/UnityEngine/UnityEngine.dll</HintPath>

@@ -7,7 +7,10 @@ using System;
 struct playerData
 {
     public Vector3 StartPosition;
-    public float PlayTime;
+    public float FloatSave;
+    public string StringSave;
+    public List<int> ListIntSave;
+    public Hashtable hashSave;
 };
 
 public class PlayerMove : MonoBehaviour
@@ -25,19 +28,24 @@ public class PlayerMove : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        // file 경로 설정
+        filePath = Application.dataPath + "\\Saves\\PlayerSave.json";
+
         playerRigidbody = GetComponent<Rigidbody>();
         IM = GetComponent<InputManager>();
 
         StartTime = Time.time;
-        filePath = Application.dataPath + "\\Saves\\PlayerSave.json";
-        LoadData();
+
+        InputData(ref data);
+
+        LoadData(ref data, filePath);
     }
 
     // Update is called once per frame
     void Update()
     {
         InputManager();
-        Move();
+        //Move();
     }
 
     #region 입력 관련
@@ -68,46 +76,48 @@ public class PlayerMove : MonoBehaviour
     #endregion
 
     #region Save&Load
-    void LoadData()
+
+    void InputData(ref playerData data)
     {
-        Debug.Log("readJson and data 선언");
+        List<int> listtmp = new List<int>();
+        Hashtable hashtmp = new Hashtable();
+
+        listtmp.Add(14);
+        data.StartPosition = transform.position;
+        data.FloatSave = 0.5f;
+        data.StringSave = "SaveTest";
+        data.ListIntSave = listtmp;
+        data.hashSave = hashtmp;
+        data.hashSave["hash"]=1;
+    }
+
+    // 제네릭 함수로 변환
+    public static void LoadData<T>(ref T data,string filePath)
+    {
+        Debug.Log("데이터를 로드합니다.");
         string readJson;
-        playerData readData;
+        T readData;
         try
         {
-            //Debug.Log("try문 실행, readJson으로 filePath 읽어오기");
-            //Debug.Log("FilePath : " + filePath);
-            
-            readJson = File.ReadAllText(filePath);
-            readData = JsonUtility.FromJson<playerData>(readJson);
-            
-            //Debug.Log("불러오기 성공");
+            readJson = File.ReadAllText(filePath); // 데이터를 읽어서 readJson에 넣는다.
+            readData = JsonUtility.FromJson<T>(readJson); // readJson string을 구조체로 변환한다.
 
-            //Debug.Log("load space : " + readData.KeyName["jump"]);
+            Debug.Log("데이터를 읽었습니다. 진행사항을 불러옵니다.");
 
-            data = readData;
-            //data.KeyName = readData.KeyName;
-            
-            transform.position = data.StartPosition; // 현재 위치를 저장된 위치로 이동
-            StartTime = Time.time; // 시간 기준을 불러온 직후로 설정
+            data = readData; // 읽은 데이터를 데이터에 집어넣는다.
         }
         catch (Exception e)
         {
             Debug.Log("error :: " + e);
             Debug.Log("경로에 파일이 없습니다. 빈 파일을 생성합니다.");
-            data.StartPosition = transform.position;
-            data.PlayTime = 0;
-            SaveData(data);
+            SaveData(ref data, filePath);
         }
     }
 
-    void SaveData(playerData playerdata)
+    public static void SaveData<T>(ref T data, string filePath)
     {
-        data.PlayTime += Time.time - StartTime;
-        StartTime = Time.time;
-        Debug.Log("현재 진행 사항을 저장합니다.");
-        File.WriteAllText(filePath, JsonUtility.ToJson(playerdata));
-        Debug.Log(JsonUtility.ToJson(playerdata));
+        Debug.Log("저장을 실행합니다.");
+        File.WriteAllText(filePath, JsonUtility.ToJson(data));
         Debug.Log("저장이 완료되었습니다.");
     }
 
