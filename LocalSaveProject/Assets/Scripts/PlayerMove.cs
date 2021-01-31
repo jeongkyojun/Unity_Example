@@ -3,13 +3,17 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.IO;
 using System;
+using Newtonsoft.Json;
 
+[Serializable]
 struct playerData
 {
     public Vector3 StartPosition;
     public float FloatSave;
     public string StringSave;
     public List<int> ListIntSave;
+    public List<List<int>> ListListIntSave;
+    public Dictionary<int, string> DicSave;
     public Hashtable hashSave;
 };
 
@@ -80,13 +84,23 @@ public class PlayerMove : MonoBehaviour
     void InputData(ref playerData data)
     {
         List<int> listtmp = new List<int>();
+        List<List<int>> listlisttmp = new List<List<int>>();
+        Dictionary<int, string> dictmp = new Dictionary<int, string>();
         Hashtable hashtmp = new Hashtable();
 
-        listtmp.Add(14);
+        
         data.StartPosition = transform.position;
         data.FloatSave = 0.5f;
         data.StringSave = "SaveTest";
         data.ListIntSave = listtmp;
+        data.ListIntSave.Add(14);
+
+        data.ListListIntSave = listlisttmp;
+        data.ListListIntSave.Add(listtmp);
+
+        data.DicSave = dictmp;
+        data.DicSave.Add(1, "saveTest");
+
         data.hashSave = hashtmp;
         data.hashSave["hash"]=1;
     }
@@ -100,8 +114,8 @@ public class PlayerMove : MonoBehaviour
         try
         {
             readJson = File.ReadAllText(filePath); // 데이터를 읽어서 readJson에 넣는다.
-            readData = JsonUtility.FromJson<T>(readJson); // readJson string을 구조체로 변환한다.
-
+            //readData = JsonUtility.FromJson<T>(readJson); // readJson string을 구조체로 변환한다.
+            readData = JsonConvert.DeserializeObject<T>(readJson);
             Debug.Log("데이터를 읽었습니다. 진행사항을 불러옵니다.");
 
             data = readData; // 읽은 데이터를 데이터에 집어넣는다.
@@ -117,7 +131,9 @@ public class PlayerMove : MonoBehaviour
     public static void SaveData<T>(ref T data, string filePath)
     {
         Debug.Log("저장을 실행합니다.");
-        File.WriteAllText(filePath, JsonUtility.ToJson(data));
+        //File.WriteAllText(filePath, JsonUtility.ToJson(data));
+
+        File.WriteAllText(filePath, JsonConvert.SerializeObject(data));
         Debug.Log("저장이 완료되었습니다.");
     }
 
