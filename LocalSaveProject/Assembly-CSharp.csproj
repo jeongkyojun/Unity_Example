@@ -64,8 +64,12 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Assets\Scripts\InputManager.cs" />
-    <Compile Include="Assets\Scripts\PlayerMove.cs" />
+    <Compile Include="Assets\Scripts\GameManager.cs" />
+    <Compile Include="Assets\Scripts\GameScene\InputManager.cs" />
+    <Compile Include="Assets\Scripts\GameScene\PlayerMove.cs" />
+    <Compile Include="Assets\Scripts\StartScene\EndBtnManager.cs" />
+    <Compile Include="Assets\Scripts\StartScene\LoadBtnManager.cs" />
+    <Compile Include="Assets\Scripts\StartScene\StartBtnManager.cs" />
     <None Include="Assets\JsonDotNet\link.xml" />
     <Reference Include="UnityEngine">
       <HintPath>D:/download/Unity/2019.4.16f1/Editor/Data/Managed/UnityEngine/UnityEngine.dll</HintPath>
