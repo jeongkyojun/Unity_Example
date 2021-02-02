@@ -68,7 +68,9 @@
     <Compile Include="Assets\Scripts\GameScene\InputManager.cs" />
     <Compile Include="Assets\Scripts\GameScene\PlayerMove.cs" />
     <Compile Include="Assets\Scripts\StartScene\EndBtnManager.cs" />
+    <Compile Include="Assets\Scripts\StartScene\ForceStart.cs" />
     <Compile Include="Assets\Scripts\StartScene\LoadBtnManager.cs" />
+    <Compile Include="Assets\Scripts\StartScene\SaveLoadManager.cs" />
     <Compile Include="Assets\Scripts\StartScene\StartBtnManager.cs" />
     <None Include="Assets\JsonDotNet\link.xml" />
     <Reference Include="UnityEngine">

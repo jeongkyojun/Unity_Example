@@ -111,7 +111,7 @@ public class PlayerMove : MonoBehaviour
         Debug.Log("데이터를 로드합니다.");
         string readJson;
         T readData;
-        try
+        if (Directory.Exists(filePath))
         {
             readJson = File.ReadAllText(filePath); // 데이터를 읽어서 readJson에 넣는다.
             //readData = JsonUtility.FromJson<T>(readJson); // readJson string을 구조체로 변환한다.
@@ -120,9 +120,10 @@ public class PlayerMove : MonoBehaviour
 
             data = readData; // 읽은 데이터를 데이터에 집어넣는다.
         }
-        catch (Exception e)
+        //catch (Exception e)
+        else
         {
-            Debug.Log("error :: " + e);
+            //Debug.Log("error :: " + e);
             Debug.Log("경로에 파일이 없습니다. 빈 파일을 생성합니다.");
             SaveData(ref data, filePath);
         }
