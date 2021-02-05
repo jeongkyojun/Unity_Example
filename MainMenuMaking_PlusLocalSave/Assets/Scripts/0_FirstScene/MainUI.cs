@@ -13,6 +13,15 @@ public enum BtnType
     End    // 종료
 }
 
+public enum SaveLoad
+{
+    Save1,
+    Save2,
+    Save3,
+    Save4,
+    Save5
+}
+
 public class MainUI : MonoBehaviour
 {
     

@@ -2,29 +2,50 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
-using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 using TMPro;
 
 public class BtnUI : MonoBehaviour,IPointerEnterHandler,IPointerExitHandler
 {
     public GameObject firstSceneGameManager;
+    MenuManagingScript menuEntity;
     AudioSource menuaudio;
+
     public TextMeshProUGUI btnText;
 
     public BtnType currentType;
 
     public CanvasGroup mainGroup;
     public CanvasGroup optionGroup;
+    public CanvasGroup loadGroup;
 
     Vector3 defaultSize; // 기본 버튼 사이즈 저장
     bool isSound=true;
     int SoundMode = 0;
     float SoundVolume = 0.25f;
+
     // Start is called before the first frame update
     void Start()
     {
+        
         defaultSize = transform.localScale;
-        menuaudio = firstSceneGameManager.GetComponent<AudioSource>();
+        switch (currentType)
+        {
+            case BtnType.New:
+                break;
+            case BtnType.Load:
+                break;
+            case BtnType.Option:
+                break;
+            case BtnType.Sound:
+                menuEntity = firstSceneGameManager.GetComponent<MenuManagingScript>();
+                menuaudio = firstSceneGameManager.GetComponent<AudioSource>();
+                break;
+            case BtnType.BackToMain:
+                break;
+            case BtnType.End:
+                break;
+        }
     }
 
     public void OnClickBtnManager()
@@ -33,10 +54,12 @@ public class BtnUI : MonoBehaviour,IPointerEnterHandler,IPointerExitHandler
         {
             case BtnType.New:
                 Debug.Log("새게임");
-                //ScreenLoader.LoadSceneHandle("Play", 0);
+                SceneManager.LoadScene("1_Loading");
                 break;
             case BtnType.Load:
                 Debug.Log("이어하기");
+                CanvasGroupOn(loadGroup);
+                CanvasGroupOff(mainGroup);
                 //ScreenLoader.LoadSceneHandle("Play", 1);
                 break;
             case BtnType.Option:
@@ -65,9 +88,9 @@ public class BtnUI : MonoBehaviour,IPointerEnterHandler,IPointerExitHandler
                 SoundMode++;
                 if (SoundMode == 5)
                     SoundMode -= 5;
-                menuaudio.volume = 1 - SoundMode * SoundVolume;
-                btnText.text = "Sound : "+menuaudio.volume.ToString();
-
+                menuEntity.mE.Volume = 1 - SoundMode * SoundVolume;
+                menuaudio.volume = menuEntity.mE.Volume; // 0 ~ 1 까지 음량을 조절
+                btnText.text = "Sound : "+menuEntity.mE.Volume.ToString(); // 버튼 텍스트 조절
                 break;
             case BtnType.BackToMain:
                 Debug.Log("메인메뉴로 가기");
