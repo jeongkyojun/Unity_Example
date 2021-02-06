@@ -10,6 +10,7 @@ public enum BtnType
     Sound,  // 소리
     Back,   // 뒤로
     BackToMain, // 메인메뉴로 돌아가기
+    BackToOption, // 옵션으로 돌아가기
     End    // 종료
 }
 
