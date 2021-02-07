@@ -206,7 +206,7 @@ MonoBehaviour:
   m_MinValue: 0
   m_MaxValue: 1
   m_WholeNumbers: 0
-  m_Value: 0
+  m_Value: 0.176
   m_OnValueChanged:
     m_PersistentCalls:
       m_Calls: []
@@ -2210,6 +2210,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ae486307be2928040a9e1e6f6cc3921d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  mE:
+    Volume: 0
   volumeSlider: {fileID: 19760378}
   volumeText: {fileID: 282425788}
 --- !u!82 &881689060

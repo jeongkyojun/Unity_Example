@@ -126,6 +126,7 @@ public class PlayerMove : MonoBehaviour
             //Debug.Log("error :: " + e);
             Debug.Log("경로에 파일이 없습니다. 빈 파일을 생성합니다.");
             SaveData(ref data, filePath);
+            LoadData(ref data, filePath);
         }
     }
 

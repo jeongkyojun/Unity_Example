@@ -36,8 +36,6 @@ public class SceneLoad : MonoBehaviour
             if (progressbar.value < 0.9f)
             {
                 progressbar.value = Mathf.MoveTowards(progressbar.value, 0.9f, Time.deltaTime);
-                //progressbar.value = operation.progress;
-                //Debug.Log(operation.progress);
             }
             else if(operation.progress>=0.9f)
             {

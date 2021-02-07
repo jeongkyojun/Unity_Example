@@ -5,7 +5,7 @@ using UnityEngine;
 public class SaveUI : MonoBehaviour
 {
     public SaveLoad saveType;
-    public string savePath = "\\Saves";
+    public string savePath;
     public int pathLen;
     public void OnClickSaveBtn()
     {
@@ -53,6 +53,7 @@ public class SaveUI : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        savePath = Application.dataPath + "\\Saves";
         pathLen = savePath.Length;
     }
 
