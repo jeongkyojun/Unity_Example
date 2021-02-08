@@ -1,16 +1,15 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
+// 메인, 옵션, 볼륨, 로드
+// 메인 - 옵션, 볼륨, 로드
 public enum BtnType
 {
-    New,    // 새게임
+    New,    // 시작하기
     Load,   // 불러오기
     Option, // 옵션
     Sound,  // 소리
-    Back,   // 뒤로
-    BackToMain, // 메인메뉴로 돌아가기
-    BackToOption, // 옵션으로 돌아가기
+    Back,   // 뒤로가기
     End    // 종료
 }
 

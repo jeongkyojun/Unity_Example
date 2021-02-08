@@ -11,16 +11,27 @@ public struct MenuEntity
     public float Volume;
 };
 
+public struct PathEntity
+{
+    public string savePath;
+}
+
 public class MenuManagingScript : MonoBehaviour
 {
     string MenuEntityPath;
     string fileName = "\\OptionSave.json";
     public MenuEntity mE = new MenuEntity();
-    
+    public PathEntity pE = new PathEntity();
+
     public Slider volumeSlider;
     public Text volumeText;
     AudioSource volume;
 
+
+    private void Awake()
+    {
+        DontDestroyOnLoad(transform.gameObject);
+    }
     // Start is called before the first frame update
     void Start()
     {

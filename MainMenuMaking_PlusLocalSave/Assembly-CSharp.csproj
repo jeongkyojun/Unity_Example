@@ -66,10 +66,12 @@
   <ItemGroup>
     <Compile Include="Assets\Scripts\0_FirstScene\BtnUI.cs" />
     <Compile Include="Assets\Scripts\0_FirstScene\MainUI.cs" />
+    <Compile Include="Assets\Scripts\0_FirstScene\MenuManager.cs" />
     <Compile Include="Assets\Scripts\0_FirstScene\MenuManagingScript.cs" />
     <Compile Include="Assets\Scripts\0_FirstScene\SaveUI.cs" />
     <Compile Include="Assets\Scripts\0_FirstScene\SoundUI.cs" />
     <Compile Include="Assets\Scripts\1_LoadScene\SceneLoad.cs" />
+    <Compile Include="Assets\Scripts\2_GameScene\GameManager.cs" />
     <Compile Include="Assets\TextMesh Pro\Examples &amp; Extras\Scripts\Benchmark01.cs" />
     <Compile Include="Assets\TextMesh Pro\Examples &amp; Extras\Scripts\Benchmark01_UGUI.cs" />
     <Compile Include="Assets\TextMesh Pro\Examples &amp; Extras\Scripts\Benchmark02.cs" />

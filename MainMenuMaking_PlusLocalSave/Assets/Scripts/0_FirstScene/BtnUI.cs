@@ -9,22 +9,20 @@ public class BtnUI : MonoBehaviour,IPointerEnterHandler,IPointerExitHandler
 {
     public GameObject firstSceneGameManager;
     MenuManagingScript menuEntity;
-    
+
+    public GameObject MenuManager;
+    MenuManager MenuManagerScript;
+
     public TextMeshProUGUI btnText;
 
     public BtnType currentType;
-
-    public CanvasGroup mainGroup;
-    public CanvasGroup optionGroup;
-    public CanvasGroup loadGroup;
-    public CanvasGroup volumeGroup;
 
     Vector3 defaultSize; // 기본 버튼 사이즈 저장
 
     // Start is called before the first frame update
     void Start()
     {
-        
+        MenuManagerScript = MenuManager.GetComponent<MenuManager>();
         defaultSize = transform.localScale;
         switch (currentType)
         {
@@ -36,9 +34,7 @@ public class BtnUI : MonoBehaviour,IPointerEnterHandler,IPointerExitHandler
                 break;
             case BtnType.Sound:
                 break;
-            case BtnType.BackToMain:
-                break;
-            case BtnType.BackToOption:
+            case BtnType.Back:
                 break;
             case BtnType.End:
                 break;
@@ -50,34 +46,33 @@ public class BtnUI : MonoBehaviour,IPointerEnterHandler,IPointerExitHandler
         switch (currentType)
         {
             case BtnType.New:
-                Debug.Log("새게임");
-                SceneManager.LoadScene("1_Loading");
+                Debug.Log("세이브 파일 선택");
+                //현재 캔버스 그룹을 off 한다.
+                CanvasGroupOff(MenuManagerScript.GroupArr[MenuManagerScript.ArrPoint]);
+                MenuManagerScript.GroupArr[++MenuManagerScript.ArrPoint] = MenuManagerScript.LoadGroup;
+                CanvasGroupOn(MenuManagerScript.LoadGroup);
                 break;
             case BtnType.Load:
                 Debug.Log("이어하기");
-                CanvasGroupOn(loadGroup);
-                CanvasGroupOff(mainGroup);
+                
                 //ScreenLoader.LoadSceneHandle("Play", 1);
                 break;
             case BtnType.Option:
                 Debug.Log("설정");
-                CanvasGroupOn(optionGroup);
-                CanvasGroupOff(mainGroup);
+                CanvasGroupOff(MenuManagerScript.GroupArr[MenuManagerScript.ArrPoint]);
+                MenuManagerScript.GroupArr[++MenuManagerScript.ArrPoint] = MenuManagerScript.OptionGroup;
+                CanvasGroupOn(MenuManagerScript.OptionGroup);
                 break;
             case BtnType.Sound:
                 Debug.Log("소리");
-                CanvasGroupOff(optionGroup);
-                CanvasGroupOn(volumeGroup);
+                CanvasGroupOff(MenuManagerScript.GroupArr[MenuManagerScript.ArrPoint]);
+                MenuManagerScript.GroupArr[++MenuManagerScript.ArrPoint] = MenuManagerScript.VolumeGroup;
+                CanvasGroupOn(MenuManagerScript.VolumeGroup);
                 break;
-            case BtnType.BackToMain:
-                Debug.Log("메인메뉴로 가기");
-                CanvasGroupOn(mainGroup);
-                CanvasGroupOff(optionGroup);
-                break;
-            case BtnType.BackToOption:
-                Debug.Log("옵션으로 돌아가기");
-                CanvasGroupOff(volumeGroup);
-                CanvasGroupOn(optionGroup);
+            case BtnType.Back:
+                Debug.Log("이전메뉴로 이동");
+                CanvasGroupOff(MenuManagerScript.GroupArr[MenuManagerScript.ArrPoint]);
+                CanvasGroupOn(MenuManagerScript.GroupArr[--MenuManagerScript.ArrPoint]);
                 break;
             case BtnType.End:
                 Debug.Log("끝내기");
