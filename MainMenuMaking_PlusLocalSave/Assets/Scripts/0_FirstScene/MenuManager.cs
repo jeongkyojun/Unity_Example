@@ -16,10 +16,4 @@ public class MenuManager : MonoBehaviour
     {
         GroupArr[++ArrPoint] = MainGroup;
     }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
 }

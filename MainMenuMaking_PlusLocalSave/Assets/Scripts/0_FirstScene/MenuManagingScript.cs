@@ -46,16 +46,11 @@ public class MenuManagingScript : MonoBehaviour
             Directory.CreateDirectory(MenuEntityPath);
         }
         LoadData<MenuEntity>(ref mE, MenuEntityPath, fileName);
-
-        Debug.Log("불러온 값 : " + mE.Volume);
-
         volumeSlider.value = mE.Volume;
-        Debug.Log("불러온 값 : " + volumeSlider.value);
         volume.volume = volumeSlider.value;
         volumeText.text = ((int)(volumeSlider.value * 100)).ToString();
         volumeSlider.onValueChanged.AddListener(delegate { ValueChangeCheck(); });
-        //volumeSlider.onValueChanged.AddListener(delegate { SaveData<MenuEntity>(ref mE, MenuEntityPath, fileName); });
-        Debug.Log("AddListener End");
+
     }
 
     public void ValueChangeCheck()
@@ -86,7 +81,7 @@ public class MenuManagingScript : MonoBehaviour
         }
         catch (Exception e)
         {
-            //Debug.Log("error :: " + e);
+            Debug.Log("error :: " + e);
             MenuEntity defaultMenu = new MenuEntity();
             Debug.Log("경로에 파일이 없습니다. 빈 파일을 생성합니다.");
             defaultMenu.Volume = 0f;
@@ -98,7 +93,6 @@ public class MenuManagingScript : MonoBehaviour
     {
         Debug.Log("저장을 실행합니다.");
         File.WriteAllText(filePath+fileName, JsonUtility.ToJson(data));
-        //File.WriteAllText(filePath, JsonConvert.SerializeObject(data));
         Debug.Log("저장이 완료되었습니다.");
         Debug.Log("저장값 : " + data);
     }

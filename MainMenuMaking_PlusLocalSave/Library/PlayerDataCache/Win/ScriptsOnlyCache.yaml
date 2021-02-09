@@ -2,6 +2,8 @@ ScriptsOnlyBuild:
   usedScripts:
     Assembly-CSharp.dll:
     - BtnUI
+    - GameManager
+    - MenuManager
     - MenuManagingScript
     - SaveUI
     - SceneLoad
@@ -56,33 +58,39 @@ ScriptsOnlyBuild:
     - Class: 114
       Script: {instanceID: 11274}
     - Class: 114
+      Script: {instanceID: 11432}
+    - Class: 114
       Script: {instanceID: 11474}
     - Class: 114
-      Script: {instanceID: 11866}
+      Script: {instanceID: 11868}
     - Class: 114
-      Script: {instanceID: 11894}
+      Script: {instanceID: 11896}
     - Class: 114
-      Script: {instanceID: 12084}
+      Script: {instanceID: 12088}
     - Class: 114
-      Script: {instanceID: 12264}
+      Script: {instanceID: 12152}
     - Class: 114
-      Script: {instanceID: 12490}
+      Script: {instanceID: 12270}
     - Class: 114
-      Script: {instanceID: 12506}
+      Script: {instanceID: 12496}
     - Class: 114
-      Script: {instanceID: 12704}
+      Script: {instanceID: 12512}
     - Class: 114
-      Script: {instanceID: 12768}
+      Script: {instanceID: 12712}
     - Class: 114
-      Script: {instanceID: 12934}
+      Script: {instanceID: 12776}
     - Class: 114
-      Script: {instanceID: 13044}
+      Script: {instanceID: 12942}
     - Class: 114
-      Script: {instanceID: 13144}
+      Script: {instanceID: 13018}
     - Class: 114
-      Script: {instanceID: 13158}
+      Script: {instanceID: 13054}
     - Class: 114
-      Script: {instanceID: 14104}
+      Script: {instanceID: 13154}
+    - Class: 114
+      Script: {instanceID: 13168}
+    - Class: 114
+      Script: {instanceID: 13186}
     - Class: 115
       Script: {instanceID: 0}
     - Class: 128
@@ -127,15 +135,15 @@ ScriptsOnlyBuild:
     - Class: 114
       Script: {instanceID: 11474}
     - Class: 114
-      Script: {instanceID: 11866}
+      Script: {instanceID: 11868}
     - Class: 114
-      Script: {instanceID: 12768}
+      Script: {instanceID: 11906}
     - Class: 114
-      Script: {instanceID: 13144}
+      Script: {instanceID: 12776}
     - Class: 114
-      Script: {instanceID: 13176}
+      Script: {instanceID: 13154}
     - Class: 114
-      Script: {instanceID: 15914}
+      Script: {instanceID: 13186}
     - Class: 115
       Script: {instanceID: 0}
     - Class: 128
@@ -170,6 +178,10 @@ ScriptsOnlyBuild:
     - Class: 104
       Script: {instanceID: 0}
     - Class: 108
+      Script: {instanceID: 0}
+    - Class: 114
+      Script: {instanceID: 11732}
+    - Class: 115
       Script: {instanceID: 0}
     - Class: 157
       Script: {instanceID: 0}
@@ -334,6 +346,12 @@ ScriptsOnlyBuild:
     className: TMP_SubMeshUI
   - hash:
       serializedVersion: 2
+      Hash: 8f5a244bc649e003d5efcf9b50b4d649
+    assemblyName: Assembly-CSharp.dll
+    namespaceName: 
+    className: GameManager
+  - hash:
+      serializedVersion: 2
       Hash: 5ab533713adae59372fb3e10a585c186
     assemblyName: Unity.Timeline.dll
     namespaceName: UnityEngine.Timeline
@@ -394,6 +412,12 @@ ScriptsOnlyBuild:
     className: TMP_TextEventHandler
   - hash:
       serializedVersion: 2
+      Hash: 88f3cdc1aa1f0f8616982e24d3a6629b
+    assemblyName: Assembly-CSharp.dll
+    namespaceName: 
+    className: SceneLoad
+  - hash:
+      serializedVersion: 2
       Hash: c3d3430df9e3ea95e3e3d587961390fb
     assemblyName: Unity.Timeline.dll
     namespaceName: UnityEngine.Timeline
@@ -418,7 +442,7 @@ ScriptsOnlyBuild:
     className: ScrollRect
   - hash:
       serializedVersion: 2
-      Hash: 71bb6a6b6c8f052f948db64c7dd3ca4f
+      Hash: db929aa07d1619648dcb91e76c0e7fc4
     assemblyName: Assembly-CSharp.dll
     namespaceName: 
     className: MenuManagingScript
@@ -446,6 +470,12 @@ ScriptsOnlyBuild:
     assemblyName: Unity.TextMeshPro.dll
     namespaceName: TMPro
     className: TMP_SpriteAnimator
+  - hash:
+      serializedVersion: 2
+      Hash: 2e407d6c2628dee3ae9d4d72b02c093b
+    assemblyName: Assembly-CSharp.dll
+    namespaceName: 
+    className: MenuManager
   - hash:
       serializedVersion: 2
       Hash: 71bb6a6b6c8f052f948db64c7dd3ca4f
@@ -586,6 +616,12 @@ ScriptsOnlyBuild:
     className: TMP_TextInfoDebugTool
   - hash:
       serializedVersion: 2
+      Hash: 71bb6a6b6c8f052f948db64c7dd3ca4f
+    assemblyName: Assembly-CSharp.dll
+    namespaceName: 
+    className: SoundUI
+  - hash:
+      serializedVersion: 2
       Hash: bd3f0ca738703903e759f77536ed74fd
     assemblyName: Assembly-CSharp.dll
     namespaceName: TMPro.Examples
@@ -694,6 +730,12 @@ ScriptsOnlyBuild:
     className: TMPro_InstructionOverlay
   - hash:
       serializedVersion: 2
+      Hash: 7e2d2e47710cdc1424b3c41165aede15
+    assemblyName: Assembly-CSharp.dll
+    namespaceName: 
+    className: SaveUI
+  - hash:
+      serializedVersion: 2
       Hash: 71bb6a6b6c8f052f948db64c7dd3ca4f
     assemblyName: Assembly-CSharp.dll
     namespaceName: TMPro.Examples
@@ -784,7 +826,7 @@ ScriptsOnlyBuild:
     className: StandaloneInputModule
   - hash:
       serializedVersion: 2
-      Hash: 8272267ae059b2b8a04a7d0334487406
+      Hash: 36e053a9eafee05f08d7603a30949f72
     assemblyName: Assembly-CSharp.dll
     namespaceName: 
     className: BtnUI
@@ -818,18 +860,6 @@ ScriptsOnlyBuild:
     assemblyName: Unity.Timeline.dll
     namespaceName: UnityEngine.Timeline
     className: PlayableTrack
-  - hash:
-      serializedVersion: 2
-      Hash: e47d9b1b79ec47d42ce5714152ed6f67
-    assemblyName: Assembly-CSharp.dll
-    namespaceName: 
-    className: SaveUI
-  - hash:
-      serializedVersion: 2
-      Hash: 88f3cdc1aa1f0f8616982e24d3a6629b
-    assemblyName: Assembly-CSharp.dll
-    namespaceName: 
-    className: SceneLoad
   platform: 5
   scenePathNames:
   - Assets/Scenes/0_FirstScreen.unity

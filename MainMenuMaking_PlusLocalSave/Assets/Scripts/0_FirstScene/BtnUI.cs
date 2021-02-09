@@ -100,13 +100,11 @@ public class BtnUI : MonoBehaviour,IPointerEnterHandler,IPointerExitHandler
 
     public void OnPointerEnter(PointerEventData eventData)
     {
-        //buttonScale.localScale = defaultScale * 1.2f;
         transform.localScale = defaultSize * 1.2f;
     }
 
     public void OnPointerExit(PointerEventData eventData)
     {
-        //buttonScale.localScale = defaultScale;
         transform.localScale = defaultSize;
     }
 
