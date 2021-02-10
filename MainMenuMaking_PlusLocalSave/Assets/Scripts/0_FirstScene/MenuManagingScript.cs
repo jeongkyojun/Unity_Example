@@ -16,6 +16,14 @@ public struct PathEntity
     public string savePath;
 }
 
+[System.Serializable]
+public struct InputEntity
+{
+    public Dictionary<KeyCode, bool> isKeyOn;    // KeyCode가 할당 되어있는지를 확인
+    public Dictionary<KeyCode, string> keySet;  // KeyCode와 기능 연결
+    public Dictionary<string, KeyCode> keySetRev; // 기능과 KeyCode 연결
+}
+
 public class MenuManagingScript : MonoBehaviour
 {
     string MenuEntityPath;
@@ -51,6 +59,11 @@ public class MenuManagingScript : MonoBehaviour
         volumeText.text = ((int)(volumeSlider.value * 100)).ToString();
         volumeSlider.onValueChanged.AddListener(delegate { ValueChangeCheck(); });
 
+    }
+
+    private void Update()
+    {
+        keyChange();
     }
 
     public void ValueChangeCheck()
@@ -97,4 +110,12 @@ public class MenuManagingScript : MonoBehaviour
         Debug.Log("저장값 : " + data);
     }
     #endregion
+
+    public void keyChange()
+    {
+        if(Input.anyKeyDown)
+        {
+            Debug.Log(Input.inputString);
+        }
+    }
 }

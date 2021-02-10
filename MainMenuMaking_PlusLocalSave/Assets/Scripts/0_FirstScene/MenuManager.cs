@@ -8,6 +8,7 @@ public class MenuManager : MonoBehaviour
     public CanvasGroup OptionGroup;
     public CanvasGroup VolumeGroup;
     public CanvasGroup LoadGroup;
+    public CanvasGroup KeySetGroup;
 
     public CanvasGroup[] GroupArr = new CanvasGroup[5];
     public int ArrPoint = -1;
