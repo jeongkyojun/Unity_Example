@@ -10,13 +10,19 @@ using UnityEngine.EventSystems;
 public class SaveUI : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {
     public GameObject firstSceneGameManager;
+    
     MenuManagingScript menuEntity;
     public SaveLoad saveType;
     public int pathLen;
 
+    public GameObject ImageSet;
+    Image saveImage;
     Image childPanelImage;
+    Text childText;
     Vector3 defaultSize;
     Color defaultColor;
+    bool isLoad;
+    GameEntity gE = new GameEntity();
 
     public void OnClickSaveBtn()
     {
@@ -70,11 +76,61 @@ public class SaveUI : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
         menuEntity = firstSceneGameManager.GetComponent<MenuManagingScript>();
         menuEntity.pE.savePath = Application.dataPath + "\\Saves";
         pathLen = menuEntity.pE.savePath.Length;
-        
+
+        saveImage = ImageSet.GetComponent<Image>();
+
         defaultSize = transform.localScale;
         childPanelImage = transform.GetComponentInChildren<Image>();
+        childText = transform.GetComponentInChildren<Text>();
+        childText.text = "helloworld";
         defaultColor = childPanelImage.color;
-
+        
+        switch (saveType)
+        {
+            case SaveLoad.Save1:
+                if (pathLen == menuEntity.pE.savePath.Length)
+                {
+                    Debug.Log("add log1");
+                    isLoad = LoadData<GameEntity>(ref gE, menuEntity.pE.savePath + "\\01\\", "playerSave.json", childText,saveImage);
+                }
+                break;
+            case SaveLoad.Save2:
+                if (pathLen == menuEntity.pE.savePath.Length)
+                {
+                    Debug.Log("add log2");
+                    isLoad = LoadData<GameEntity>(ref gE, menuEntity.pE.savePath + "\\02\\", "playerSave.json", childText, saveImage);
+                }
+                break;
+            case SaveLoad.Save3:
+                if (pathLen == menuEntity.pE.savePath.Length)
+                {
+                    Debug.Log("add log3");
+                    isLoad = LoadData<GameEntity>(ref gE, menuEntity.pE.savePath + "\\03\\", "playerSave.json", childText, saveImage);
+                }
+                break;
+            case SaveLoad.Save4:
+                if (pathLen == menuEntity.pE.savePath.Length)
+                {
+                    Debug.Log("add log4");
+                    menuEntity.pE.savePath += "\\04";
+                    isLoad = LoadData<GameEntity>(ref gE, menuEntity.pE.savePath + "\\04\\", "playerSave.json", childText, saveImage);
+                }
+                break;
+            case SaveLoad.Save5:
+                if (pathLen == menuEntity.pE.savePath.Length)
+                {
+                    Debug.Log("add log");
+                    isLoad = LoadData<GameEntity>(ref gE, menuEntity.pE.savePath + "\\05\\", "playerSave.json",childText, saveImage);
+                }
+                break;
+        }
+        if(isLoad)
+        {
+            childText.text = "level : " + gE.level.ToString() +
+                "\nhp : " + gE.hp.ToString() + " / " + gE.maxHp.ToString() +
+                "\nplayTime : " + gE.play_h.ToString() + " : " + gE.play_m.ToString() + " : " +gE.play_s.ToString();
+            saveImage.color = Color.cyan;
+        }
     }
 
     // Update is called once per frame
@@ -108,7 +164,7 @@ public class SaveUI : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 
     #region save&load
     // 제네릭 함수로 변환
-    public static void LoadData<T>(ref T data, string filePath, string fileName)
+    public static bool LoadData<T>(ref T data, string filePath, string fileName,Text childText,Image Img)
     {
         Debug.Log("데이터를 로드합니다.");
         string readJson;
@@ -122,14 +178,13 @@ public class SaveUI : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
             Debug.Log("데이터를 읽었습니다. 진행사항을 불러옵니다.");
 
             data = readData; // 읽은 데이터를 데이터에 집어넣는다.
+            return true;
         }
         catch (Exception e)
         {
-            //Debug.Log("error :: " + e);
-            MenuEntity defaultMenu = new MenuEntity();
-            Debug.Log("경로에 파일이 없습니다. 빈 파일을 생성합니다.");
-            defaultMenu.Volume = 0f;
-            SaveData(ref defaultMenu, filePath, fileName);
+            childText.text = "새 게임 시작하기";
+            Img.color = new Color(0, 0, 0, 0);
+            return false;
         }
     }
 
