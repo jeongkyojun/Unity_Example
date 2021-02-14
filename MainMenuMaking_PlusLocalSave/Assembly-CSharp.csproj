@@ -65,6 +65,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\Scripts\0_FirstScene\BtnUI.cs" />
+    <Compile Include="Assets\Scripts\0_FirstScene\KeySetUI.cs" />
     <Compile Include="Assets\Scripts\0_FirstScene\MainUI.cs" />
     <Compile Include="Assets\Scripts\0_FirstScene\MenuManager.cs" />
     <Compile Include="Assets\Scripts\0_FirstScene\MenuManagingScript.cs" />

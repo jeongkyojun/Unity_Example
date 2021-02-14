@@ -27,7 +27,8 @@ public struct InputEntity
 public class MenuManagingScript : MonoBehaviour
 {
     string MenuEntityPath;
-    string fileName = "\\OptionSave.json";
+    string OptionfileName = "\\OptionSave.json";
+    string KeyfileName = "\\KeySave.json";
     public MenuEntity mE = new MenuEntity();
     public PathEntity pE = new PathEntity();
     public InputEntity Ie = new InputEntity();
@@ -55,7 +56,8 @@ public class MenuManagingScript : MonoBehaviour
             Debug.Log("파일경로가 없습니다. 경로를 새로 만듭니다.");
             Directory.CreateDirectory(MenuEntityPath);
         }
-        LoadData<MenuEntity>(ref mE, MenuEntityPath, fileName);
+        LoadData<MenuEntity>(ref mE, MenuEntityPath, OptionfileName);
+        LoadData<InputEntity>(ref Ie, MenuEntityPath, KeyfileName);
         volumeSlider.value = mE.Volume;
         volume.volume = volumeSlider.value;
         volumeText.text = ((int)(volumeSlider.value * 100)).ToString();
@@ -67,13 +69,13 @@ public class MenuManagingScript : MonoBehaviour
     {
     }
 
-    public void ValueChangeCheck()
+    public void ValueChangeCheck() // 슬라이더 바 관련 저장 변화
     {
         Debug.Log(volumeSlider.value);
         mE.Volume = volumeSlider.value;
         volume.volume = volumeSlider.value;
         volumeText.text = ((int)(volumeSlider.value * 100)).ToString();
-        SaveData<MenuEntity>(ref mE, MenuEntityPath, fileName);
+        SaveData<MenuEntity>(ref mE, MenuEntityPath, OptionfileName);
     }
 
     #region save&load

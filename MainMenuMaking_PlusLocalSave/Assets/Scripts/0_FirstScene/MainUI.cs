@@ -10,7 +10,9 @@ public enum BtnType
     Option, // 옵션
     Sound,  // 소리
     Back,   // 뒤로가기
-    End    // 종료
+    End,    // 종료
+    KeySet, // 키 셋팅
+    BtnTypCnt // 버튼 타입 숫자
 }
 
 public enum SaveLoad
@@ -19,7 +21,8 @@ public enum SaveLoad
     Save2,
     Save3,
     Save4,
-    Save5
+    Save5,
+    SaveLoadCnt // 세이브 칸 숫자
 }
 
 public class MainUI : MonoBehaviour

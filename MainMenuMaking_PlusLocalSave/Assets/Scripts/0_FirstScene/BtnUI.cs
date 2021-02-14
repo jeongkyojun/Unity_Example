@@ -38,6 +38,7 @@ public class BtnUI : MonoBehaviour,IPointerEnterHandler,IPointerExitHandler
                 break;
             case BtnType.End:
                 break;
+
         }
     }
 
@@ -81,6 +82,12 @@ public class BtnUI : MonoBehaviour,IPointerEnterHandler,IPointerExitHandler
 #else
                 Application.Quit();// 일반 빌드일 경우
 #endif
+                break;
+            case BtnType.KeySet:
+                Debug.Log("키셋팅으로 이동");
+                CanvasGroupOff(MenuManagerScript.GroupArr[MenuManagerScript.ArrPoint]);
+                MenuManagerScript.GroupArr[++MenuManagerScript.ArrPoint] = MenuManagerScript.KeySetGroup;
+                CanvasGroupOn(MenuManagerScript.KeySetGroup);
                 break;
         }
     }
