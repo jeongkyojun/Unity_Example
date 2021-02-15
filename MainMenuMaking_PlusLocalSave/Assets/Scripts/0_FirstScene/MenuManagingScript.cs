@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using System;
 using System.IO;
+using Newtonsoft.Json;
 
 [System.Serializable]
 public struct MenuEntity
@@ -19,9 +20,7 @@ public struct PathEntity
 [System.Serializable]
 public struct InputEntity
 {
-    public Dictionary<KeyCode, bool> isKeyOn;    // KeyCode가 할당 되어있는지를 확인
-    public Dictionary<KeyCode, string> keySet;    // KeyCode와 기능 연결
-    public Dictionary<string, KeyCode> keySetRev; // 기능과 KeyCode 연결
+    public Dictionary<KeyAction, KeyCode> keySet; // 기능과 KeyCode 연결
 }
 
 public class MenuManagingScript : MonoBehaviour
@@ -35,7 +34,7 @@ public class MenuManagingScript : MonoBehaviour
 
     public Slider volumeSlider;
     public Text volumeText;
-    AudioSource volume;
+    AudioSource Mainvolume;
 
 
     private void Awake()
@@ -46,7 +45,7 @@ public class MenuManagingScript : MonoBehaviour
     void Start()
     {
         InitInputEntity(ref Ie);
-        volume = GetComponent<AudioSource>();
+        Mainvolume = GetComponent<AudioSource>();
 
         MenuEntityPath = Application.dataPath + "\\Saves";
         mE.Volume = volumeSlider.value;
@@ -59,7 +58,7 @@ public class MenuManagingScript : MonoBehaviour
         LoadData<MenuEntity>(ref mE, MenuEntityPath, OptionfileName);
         LoadData<InputEntity>(ref Ie, MenuEntityPath, KeyfileName);
         volumeSlider.value = mE.Volume;
-        volume.volume = volumeSlider.value;
+        Mainvolume.volume = volumeSlider.value;
         volumeText.text = ((int)(volumeSlider.value * 100)).ToString();
         volumeSlider.onValueChanged.AddListener(delegate { ValueChangeCheck(); });
 
@@ -73,7 +72,7 @@ public class MenuManagingScript : MonoBehaviour
     {
         Debug.Log(volumeSlider.value);
         mE.Volume = volumeSlider.value;
-        volume.volume = volumeSlider.value;
+        Mainvolume.volume = volumeSlider.value;
         volumeText.text = ((int)(volumeSlider.value * 100)).ToString();
         SaveData<MenuEntity>(ref mE, MenuEntityPath, OptionfileName);
     }
@@ -89,8 +88,8 @@ public class MenuManagingScript : MonoBehaviour
         {
             Debug.Log(filePath + fileName);
             readJson = File.ReadAllText(filePath + fileName); // 데이터를 읽어서 readJson에 넣는다.
-            readData = JsonUtility.FromJson<T>(readJson); // readJson string을 구조체로 변환한다.
-                                                          //readData = JsonConvert.DeserializeObject<T>(readJson);
+            //readData = JsonUtility.FromJson<T>(readJson); // readJson string을 구조체로 변환한다.
+            readData = JsonConvert.DeserializeObject<T>(readJson);
             Debug.Log("데이터를 읽었습니다. 진행사항을 불러옵니다.");
 
             data = readData; // 읽은 데이터를 데이터에 집어넣는다.
@@ -98,17 +97,16 @@ public class MenuManagingScript : MonoBehaviour
         catch (Exception e)
         {
             Debug.Log("error :: " + e);
-            MenuEntity defaultMenu = new MenuEntity();
-            Debug.Log("경로에 파일이 없습니다. 빈 파일을 생성합니다.");
-            defaultMenu.Volume = 0f;
-            SaveData(ref defaultMenu, filePath, fileName);
+            Debug.Log("경로에 파일이 없습니다. 초기 파일을 생성합니다.");
+            SaveData(ref data, filePath, fileName);
         }
     }
 
     public static void SaveData<T>(ref T data, string filePath, string fileName)
     {
         Debug.Log("저장을 실행합니다.");
-        File.WriteAllText(filePath + fileName, JsonUtility.ToJson(data));
+        //File.WriteAllText(filePath + fileName, JsonUtility.ToJson(data));
+        File.WriteAllText(filePath + fileName, JsonConvert.SerializeObject(data));
         Debug.Log("저장이 완료되었습니다.");
         Debug.Log("저장값 : " + data);
     }
@@ -117,50 +115,30 @@ public class MenuManagingScript : MonoBehaviour
 
     public void InitInputEntity(ref InputEntity Ie)
     {
-        Dictionary<KeyCode, bool> isKeyOn = new Dictionary<KeyCode, bool>();    // KeyCode가 할당 되어있는지를 확인
-        /*
-         * 키코드가 매핑되어 있는지를 확인
-         */
-        Dictionary<KeyCode,string> keySet = new Dictionary<KeyCode, string>(); // 기능과 KeyCode 연결
-        /*
-         * key값 : 각 키코드 , value : 키코드와 매핑된 기능, 또는 "None";
-         */
-        Dictionary<string, KeyCode> keySetRev = new Dictionary<string, KeyCode>(); // 기능과 KeyCode 연결
+        Dictionary<KeyAction, KeyCode> keySet = new Dictionary<KeyAction, KeyCode>(); // 기능과 KeyCode 연결
+        KeyAction keyact;
         /*
          * key값 : 게임내의 각 기능 , value : 해당 기능과 매핑된 키코드 또는 KeyCode.None;
+         *  public enum KeyAction
+         *  {
+         *      Up,
+         *      Down,
+         *      Left,
+         *      Right,
+
+         *      Jump,
+         *      Dash,
+         *
+         *      KeyCount
+         *  };
          */
-
-        keySet.Add(KeyCode.None, " - ");
-        
+        KeyCode[] key = new KeyCode[] { KeyCode.UpArrow, KeyCode.DownArrow, KeyCode.LeftArrow, KeyCode.RightArrow, KeyCode.Space, KeyCode.Z };
         // 상하좌우키 입력
-        isKeyOn.Add(KeyCode.LeftArrow, true);
-        isKeyOn.Add(KeyCode.RightArrow, true);
-        isKeyOn.Add(KeyCode.UpArrow, true);
-        isKeyOn.Add(KeyCode.DownArrow, true);
-
-        keySet.Add(KeyCode.LeftArrow, "leftMove");
-        keySet.Add(KeyCode.RightArrow, "rightMove");
-        keySet.Add(KeyCode.UpArrow,"upMove");
-        keySet.Add(KeyCode.DownArrow, "downMove");
-
-        keySetRev.Add("leftMove",KeyCode.LeftArrow );
-        keySetRev.Add("rightMove",KeyCode.RightArrow);
-        keySetRev.Add("upMove", KeyCode.UpArrow);
-        keySetRev.Add("downMove",KeyCode.DownArrow);
-
-        //점프키 입력
-        isKeyOn.Add(KeyCode.Space, true);
-        isKeyOn.Add(KeyCode.Z, true);
-
-        keySet.Add(KeyCode.Space, "jump");
-        keySet.Add(KeyCode.Z, "dash");
-
-        keySetRev.Add("jump", KeyCode.Space);
-        keySetRev.Add("dash", KeyCode.Z);
-
-        Ie.keySet = keySet;
-        Ie.keySetRev = keySetRev;
-        Ie.isKeyOn = isKeyOn;
+        for(int i=0;i<(int)KeyAction.KeyCount;i++)
+        {
+            keySet.Add((KeyAction)i, key[i]);
+        }
+        Ie.keySet=keySet;
     }
 
 
@@ -168,34 +146,6 @@ public class MenuManagingScript : MonoBehaviour
     public void keyChange(ref InputEntity Ie, KeyCode key, string func)
     {
         // 기존 기능의 키코드 초기화
-        if (Ie.keySetRev[func] != KeyCode.None)
-        {
-            Ie.isKeyOn[Ie.keySetRev[func]] = false;
-            Ie.keySet[Ie.keySetRev[func]] = "None";
-        }
-
-        try
-        {    
-            if(Ie.isKeyOn[key])// 이미 해당 키가 다른 기능을 매핑한 상태라면
-            {
-                Ie.keySetRev[Ie.keySet[key]] = KeyCode.None; // 해당 키가 이전에 가지고 있던 기능의 키코드를 지운다.                
-            }
-            Ie.keySet[key] = func;
-            Ie.keySetRev[func] = key;// 해당 키코드엔 새로운 기능을 이어준다.
-        }
-        catch(Exception e)
-        {
-            // 오류가 있다는 것은, 아직 추가가 안되어있다는 뜻이다.
-            Ie.isKeyOn.Add(key, true); // 연결되어있는 키값을 추가해준다.
-            Ie.keySet.Add(key, func);
-
-            if (Ie.isKeyOn[key])// 이미 해당 키가 다른 기능을 매핑한 상태라면
-            {
-                Ie.isKeyOn[Ie.keySetRev[Ie.keySet[key]]] = false;
-                Ie.keySetRev[Ie.keySet[key]] = KeyCode.None; // 해당 키가 이전에 가지고 있던 기능의 키코드를 지운다.
-            }
-            Ie.keySet[key] = func;
-            Ie.keySetRev[func] = key;// 해당 키코드엔 새로운 기능을 이어준다.
-        }
+        
     }
 }
