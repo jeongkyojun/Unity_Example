@@ -120,17 +120,7 @@ public class MenuManagingScript : MonoBehaviour
         /*
          * key값 : 게임내의 각 기능 , value : 해당 기능과 매핑된 키코드 또는 KeyCode.None;
          *  public enum KeyAction
-         *  {
-         *      Up,
-         *      Down,
-         *      Left,
-         *      Right,
-
-         *      Jump,
-         *      Dash,
-         *
-         *      KeyCount
-         *  };
+         *  {  Up, Down, Left, Right, Jump, Dash, KeyCount };
          */
         KeyCode[] key = new KeyCode[] { KeyCode.UpArrow, KeyCode.DownArrow, KeyCode.LeftArrow, KeyCode.RightArrow, KeyCode.Space, KeyCode.Z };
         // 상하좌우키 입력
@@ -143,9 +133,13 @@ public class MenuManagingScript : MonoBehaviour
 
 
 
-    public void keyChange(ref InputEntity Ie, KeyCode key, string func)
+    public void keyChange(ref InputEntity Ie, KeyCode key, KeyAction func)
     {
-        // 기존 기능의 키코드 초기화
-        
+        /*
+         * 텍스트 변화 필요시 입력 바람.
+         */
+
+        // 기존 기능의 키코드 변경
+        Ie.keySet[func] = key;
     }
 }
