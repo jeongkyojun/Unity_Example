@@ -73,6 +73,7 @@
     <Compile Include="Assets\Scripts\0_FirstScene\SoundUI.cs" />
     <Compile Include="Assets\Scripts\1_LoadScene\SceneLoad.cs" />
     <Compile Include="Assets\Scripts\2_GameScene\GameManager.cs" />
+    <Compile Include="Assets\Scripts\2_GameScene\InputManager.cs" />
     <Compile Include="Assets\Scripts\2_GameScene\PlayerMove.cs" />
     <Compile Include="Assets\Scripts\InputManagement.cs" />
     <Compile Include="Assets\Scripts\SaveLoadScript.cs" />
