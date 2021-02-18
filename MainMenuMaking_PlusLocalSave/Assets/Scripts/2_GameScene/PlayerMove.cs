@@ -6,13 +6,17 @@ public class PlayerMove : MonoBehaviour
 {
     MenuManagingScript menuScript;
 
-
+    SpriteRenderer playerSpriteRenderer;
     Rigidbody playerRigidbody;
 
     bool MoveLock = false, startLock = true;
     bool isGrounded = false;
+    bool isJumping = false;
 
-    bool isMove,isLeft,isRight,isJump;
+    bool isMove = false;
+    bool isLeft = false;
+    bool isRight = false;
+    bool isJump=false;
     
     float coyote_jump=0;
     int maxjumpCnt = 1, jumpCnt = 0;
@@ -24,6 +28,7 @@ public class PlayerMove : MonoBehaviour
     {
         menuScript = FindObjectOfType<MenuManagingScript>();
 
+        playerSpriteRenderer = GetComponent<SpriteRenderer>();
         playerRigidbody = GetComponent<Rigidbody>();
         
     }
@@ -42,8 +47,8 @@ public class PlayerMove : MonoBehaviour
 
     private void OnPlayerInputManagement()
     {
-        isLeft = Input.GetKey(menuScript.Ie.keySet[KeyAction.Left]);
         isRight = Input.GetKey(menuScript.Ie.keySet[KeyAction.Right]);
+        isLeft = Input.GetKey(menuScript.Ie.keySet[KeyAction.Left]);
 
         if (Input.GetKey(menuScript.Ie.keySet[KeyAction.Jump]))
         {
@@ -61,7 +66,7 @@ public class PlayerMove : MonoBehaviour
 
         if (isLeft || isRight)
             isMove = true;
-        if (!isLeft && isRight)
+        if (!isLeft && !isRight)
             isMove = false;
     }
     private void OnPlayerMove()
@@ -75,20 +80,20 @@ public class PlayerMove : MonoBehaviour
                 if (isRight)
                     Debug.Log("Right");
                 if (playerRigidbody.velocity.x < maxspeed && playerRigidbody.velocity.x> -1*maxspeed)
-                    playerRigidbody.velocity += ((isLeft?-1:0)+(isRight?1:0)) * Vector3.right * maxspeed / 4;
+                    playerRigidbody.velocity += ((isRight?1:0) + (isLeft?-1 : 0)) * Vector3.right * maxspeed / 4;
             }
         }
         else
         {
             if (playerRigidbody.velocity.x >= 0.1 || playerRigidbody.velocity.x <= -0.1)
-                playerRigidbody.velocity /= 3f;
+                playerRigidbody.velocity = ((Vector3.up*playerRigidbody.velocity.y) + (Vector3.right * 0.3f*playerRigidbody.velocity.x));
         }
     }
     private void OnPlayerJump()
     {
         if(isJump&&jumpCnt<maxjumpCnt)
         {
-            playerRigidbody.velocity += Vector3.up * jumpPower;
+            playerRigidbody.velocity = Vector3.up * jumpPower;
             jumpCnt++;
         }
     }
@@ -96,12 +101,11 @@ public class PlayerMove : MonoBehaviour
     private void IsPlayerGrounded()
     {
         RaycastHit ray;
-
+        Debug.DrawRay(transform.position, -1 * Vector3.up, Color.blue, minlen);
         if(Physics.Raycast(transform.position,-Vector3.up,out ray,minlen))
         {
-            if (minlen > ray.distance)
-                minlen = ray.distance+0.1f;
-
+            if (minlen > ray.distance+0.2f)
+                minlen = ray.distance+0.2f;
             isGrounded = true;
             jumpCnt = 0;
         }
