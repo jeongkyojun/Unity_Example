@@ -65,6 +65,11 @@ public class GameManager : MonoBehaviour
         hpText.text = "hp : "+gE.hp.ToString()+" / "+gE.maxHp.ToString();
     }
 
+    void GenerateMap()
+    {
+
+    }
+
     static void InitEntity(ref GameEntity gameEntity,GameObject player)
     {
         gameEntity.level = 1;

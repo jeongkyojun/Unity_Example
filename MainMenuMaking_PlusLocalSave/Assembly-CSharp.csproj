@@ -78,6 +78,7 @@
     <Compile Include="Assets\Scripts\2_GameScene\GameManager.cs" />
     <Compile Include="Assets\Scripts\2_GameScene\InputManager.cs" />
     <Compile Include="Assets\Scripts\2_GameScene\PlayerMove.cs" />
+    <Compile Include="Assets\Scripts\2_GameScene\TileMapScript.cs" />
     <Compile Include="Assets\Scripts\InputManagement.cs" />
     <Compile Include="Assets\Scripts\SaveLoadScript.cs" />
     <Compile Include="Assets\TextMesh Pro\Examples &amp; Extras\Scripts\Benchmark01.cs" />
@@ -700,14 +701,14 @@
     <Reference Include="Unity.Rider.Editor">
       <HintPath>D:/Git/Unity/MainMenuMaking_PlusLocalSave/Library/ScriptAssemblies/Unity.Rider.Editor.dll</HintPath>
     </Reference>
+    <Reference Include="Unity.2D.Tilemap.Editor">
+      <HintPath>D:/Git/Unity/MainMenuMaking_PlusLocalSave/Library/ScriptAssemblies/Unity.2D.Tilemap.Editor.dll</HintPath>
+    </Reference>
     <Reference Include="Unity.TextMeshPro">
       <HintPath>D:/Git/Unity/MainMenuMaking_PlusLocalSave/Library/ScriptAssemblies/Unity.TextMeshPro.dll</HintPath>
     </Reference>
     <Reference Include="UnityEditor.UI">
       <HintPath>D:/Git/Unity/MainMenuMaking_PlusLocalSave/Library/ScriptAssemblies/UnityEditor.UI.dll</HintPath>
-    </Reference>
-    <Reference Include="Unity.2D.Tilemap.Editor">
-      <HintPath>D:/Git/Unity/MainMenuMaking_PlusLocalSave/Library/ScriptAssemblies/Unity.2D.Tilemap.Editor.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup></ItemGroup>
