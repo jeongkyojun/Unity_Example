@@ -20,10 +20,10 @@ public struct position
 
 public class GameManager : MonoBehaviour
 {
-    public GameObject normalPrefab;
-    public GameObject cityPrefab;
-    GameObject[,] gameArr;
-    TileBtn[,] TileArr;
+    public GameObject normalPrefab; // 기본 프리팹
+    public GameObject cityPrefab; // 도시 프리팹
+    GameObject[,] gameArr; // 게임 오브젝트를 담는 배열
+    TileBtn[,] TileArr; // 코드를 담는 배열
 
     RaycastHit hitInfo;
 
@@ -117,89 +117,58 @@ public class GameManager : MonoBehaviour
         if (GroupPlane.Raycast(cameraRay, out rayLength)) // z축이 0인 가상의 평면과 교차하는경우
         {
             shootingdir = cameraRay.GetPoint(rayLength); // 끝 점을 저장받는다.
-            /*
-            if (Input.GetMouseButtonDown(0))
-                Debug.Log(shootingdir);
-            */
         }
+
         // 1 * x + 0.5(even) , 0.75 * y
         // 그렇다면, n,m의 좌표를 얻기 위해서는 
         // x 축 : n / 0.5 를 한 뒤, +1 또는 그대로의 값을 확인
         // y 축 : m / 0.75를 한 뒤, +1 또는 그대로의 값을 확인
         
-        int mouseRow = (int)(shootingdir.y / 0.75f);
+        int mouseRow = (int)(shootingdir.y / 0.75f); // y축
         //(0,0.75) : 0 or 1 , (0.75,1.5) : 1 or 2
-        int mouseCol = (int)(shootingdir.x);
+
+        int mouseCol = (int)((mouseRow % 2 == 0 ? 0 : 0.5f)+shootingdir.x); // x축
         //mouseCol = (int)(((mouseRow % 2 == 1) ? 0.5 : 0) + shootingdir.x);
 
         /*
          * shootingdir과 세 점 간 거리를 비교, 가장 거리가 짧은 점의 좌표를 받아온다.
          */
-
-        // 오류남 고쳐야됨
-        if (mouseRow%2==0)
+        if ((mouseRow >= 0 && mouseCol >= 0) && (mouseRow < RowSize && mouseCol < ColSize) && tileInfo.pos[mouseRow, mouseCol].isTrue)
         {
-            //(mouseRow,mouseCol)
+            //선택하는 세가지 좌표 안내
+            if (Input.GetMouseButtonDown(0))
+                Debug.Log("(" + mouseRow.ToString() + " , " + mouseCol.ToString() + ") , ("
+                + (mouseRow + 1).ToString() + " , " + mouseCol.ToString() + ") , ("
+                + (mouseRow + 1).ToString() + " , " + (mouseCol - 1).ToString() + ")");
+
+            //(mouseRow,mouseCol) -> y,x
             float DistA = Vector3.Distance(shootingdir, tileInfo.pos[mouseRow, mouseCol].TilePos);
             float DistB = -1;
             float DistC = -1;
-            //(mouseRow+1,mouseCol)
-            if (mouseRow<RowSize)
-                DistB = Vector3.Distance(shootingdir, tileInfo.pos[mouseRow+1, mouseCol].TilePos);
-
-            //(mouseRow+1,mouseCol-1)
-            if(mouseCol>0&&mouseRow<RowSize)
-                DistC = Vector3.Distance(shootingdir, tileInfo.pos[mouseRow+1, mouseCol-1].TilePos);
-
-            if (DistA < DistB)
-            {
-                mouseRow++;
-                if (DistB < DistC)
-                    mouseCol--;
-            }
-            else if (DistA < DistC)
-            {
-                mouseRow++;
-                if(DistB<DistC)
-                    mouseCol--;
-            }
-        }
-        else
-        {
-            //(mouseRow, mouseCol)
-            float DistA = Vector3.Distance(shootingdir, tileInfo.pos[mouseRow, mouseCol].TilePos);
-            float DistB = -1;
-            float DistC = -1;
-            //(mouseRow+1, mouseCol)
+            //(mouseRow+1,mouseCol) ->y+1,x
             if (mouseRow < RowSize)
                 DistB = Vector3.Distance(shootingdir, tileInfo.pos[mouseRow + 1, mouseCol].TilePos);
 
-            //(mouseRow, mouseCol-1)
-            if (mouseCol > 0)
-                DistC = Vector3.Distance(shootingdir, tileInfo.pos[mouseRow , mouseCol - 1].TilePos);
+            //(mouseRow+1,mouseCol+1)
+            if (mouseCol < ColSize && mouseRow < RowSize)
+                DistC = Vector3.Distance(shootingdir, tileInfo.pos[mouseRow + 1, mouseCol + 1].TilePos);
 
-            if (DistA < DistB)
+            if (DistA > DistB)
             {
-                if (DistB < DistC)
-                    mouseCol--;
-                else
-                    mouseRow++;
+                mouseRow++;
+                if (DistB > DistC)
+                    mouseCol++;
             }
-            else if (DistA < DistC)
+            else if (DistA > DistC)
             {
-                if (DistB < DistC)
-                    mouseCol--;
-                else
-                    mouseRow++;
+                mouseRow++;
+                if (DistB > DistC)
+                    mouseCol++;
             }
-        }
 
-        
-        if (Input.GetMouseButtonDown(0))
-        {
-            Debug.Log(mouseRow + " , " + mouseCol);
-            if ((mouseRow>=0&&mouseCol>=0)&&(mouseRow<RowSize&&mouseCol<ColSize)&&tileInfo.pos[mouseRow, mouseCol].isTrue)
+            if (Input.GetMouseButtonDown(0))
             {
+                Debug.Log(mouseRow + " , " + mouseCol);
                 if (!tileInfo.pos[mouseRow, mouseCol].isSelect)
                 {
                     tileInfo.pos[mouseRow, mouseCol].isSelect = true;
@@ -210,6 +179,7 @@ public class GameManager : MonoBehaviour
                     tileInfo.pos[mouseRow, mouseCol].isSelect = false;
                     TileArr[mouseRow, mouseCol].Tilesprite.color = tileInfo.pos[mouseRow, mouseCol].TileColor;
                 }
+
             }
         }
     }
