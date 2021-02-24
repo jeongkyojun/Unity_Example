@@ -65,6 +65,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\Scripts\GameManager.cs" />
+    <Compile Include="Assets\Scripts\PlayerManaging.cs" />
     <Compile Include="Assets\Scripts\TileInfo.cs" />
     <Reference Include="UnityEngine">
       <HintPath>D:/download/Unity/2019.4.16f1/Editor/Data/Managed/UnityEngine/UnityEngine.dll</HintPath>
