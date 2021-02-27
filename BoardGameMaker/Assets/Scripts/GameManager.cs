@@ -5,7 +5,7 @@ using UnityEngine;
 public struct TileEntity
 {
     public Pos[,] Poses;
-    public int[,] GridEnv;
+    public bool[,] TileSetting;
 }
 
 public struct Pos
@@ -27,12 +27,16 @@ public struct Pos
 
 public class GameManager : MonoBehaviour
 {
-    static int BigGrid = 27;
-    static int boundary = 10;
-    static int boarder = 5;
+    static int BigGrid = 9; // 기준이 되는 그리드의 크기
+    static int boundary = 10; // 그리드의 경계너비
+    static int boarder = 5; // 그리드 밖 경계(아직 미구현)
+    static int GridNum = 15; // 1행/1열당 그리드의 개수
 
-    static int MaxX = BigGrid * 3 + boundary * 2;
-    static int MaxY = BigGrid * 3 + boundary * 2;
+    static float setPercent = 90f;
+    static float stopPercent = 100 - setPercent;
+
+    static int MaxX = BigGrid * GridNum + boundary * (GridNum-1);
+    static int MaxY = BigGrid * GridNum + boundary * (GridNum-1);
     float TileXSize = 2;
     float TileYSize = 2;
 
@@ -68,13 +72,14 @@ public class GameManager : MonoBehaviour
         isMoved = false;
         turn = 1;
         // 각 속성 타일의 수를 정한다.
-        int minRange = 3;
-        int maxRange = 5;
+        int minRange = (GridNum*GridNum)/4;
+        int maxRange = (GridNum*GridNum)/4+2;
         for(int i=0;i<4;i++)
         {
             TileSet[i] = Random.Range(minRange,maxRange);
         }
-        TileSet[4] = 2;
+        //TileSet[4] = GridNum*GridNum*2/9;
+        TileSet[4] = 0;
         GenerateMap(ref TE, ref TilesArr, ref TileInfoArr);
         while (true)
         {
@@ -112,7 +117,7 @@ public class GameManager : MonoBehaviour
         Tiles.Poses = new Pos[MaxX,MaxY];
         GameObject[,] TileTmps = new GameObject[MaxX, MaxY];
         TileInfo[,] TileInfoTmps = new TileInfo[MaxX, MaxY];
-        Tiles.GridEnv = new int[3, 3];
+        Tiles.TileSetting = new bool[MaxX, MaxY];
 
         Color defaultColor = new Color(76, 128, 35, 255);
         Color SelectedColor = new Color(76, 128, 35, 155);
@@ -123,28 +128,85 @@ public class GameManager : MonoBehaviour
         // 0 ~ 9(row/29) * 9 , 9*9 + 9 ~ 9*18 + 9
         // (maxX/29)* i * 10 ~ (maxX/29)*(i+1)*10
         // 9 * 0 ~ 9*9
-        int Type;
-        int select;
-
-        for(int i=0;i<3;i++)
+        int SettingEnv;
+        int Xpos, Ypos;
+        for (int i= 0;i<MaxY;i++)
         {
-            for(int j=0;j<3;j++)
+            for(int j=0;j<MaxX;j++)
+            {
+                Tiles.TileSetting[i, j] = false;
+                Tiles.Poses[i, j].TileEnv= 4;
+            }
+        }
+        
+        for (int i=0;i<GridNum;i++)
+        {
+            for(int j=0;j<GridNum;j++)
             {
                 while (true)
                 {
-                    select = Random.Range(0, 5);
-                    if (TileSet[select] > 0)
+                    SettingEnv = Random.Range(0, 5);
+                    if (TileSet[SettingEnv] > 0)
                         break;
                 }
-                TileSet[select]--;
-                Tiles.GridEnv[i, j] = select;
+                Ypos = Random.Range(BigGrid * i+boundary*i, BigGrid * (i + 1) + boundary * i);
+                Xpos = Random.Range(BigGrid * j + boundary * j, BigGrid * (j + 1) + boundary * j);
+                if (!Tiles.TileSetting[Ypos,Xpos])
+                {
+                    Debug.Log("[ "+j+" , "+i+" ] Env : " + SettingEnv);
+                    GenerateTile(ref Tiles, setPercent, stopPercent, Xpos, Ypos, SettingEnv);
+                    TileSet[SettingEnv]--;
+                }
             }
-            Debug.Log(Tiles.GridEnv[i,0]+" , "+ Tiles.GridEnv[i, 1]+" , "+ Tiles.GridEnv[i, 2]);
         }
-
-        for (int i=0;i<3;i++)
+        for(int i=0;i<MaxY;i++)
         {
-            for(int j=0;j<3;j++)
+            for(int j=0;j<MaxX;j++)
+            {
+                if (Tiles.TileSetting[j, i])
+                {
+                    switch (Tiles.Poses[j, i].TileEnv)
+                    {
+                        case 0:
+                            TileTmps[j, i] = Instantiate(FireMapTile);
+                            Tiles.Poses[j, i].isTrue = true;
+                            break;
+                        case 1:
+                            TileTmps[j, i] = Instantiate(IceMapTile);
+                            Tiles.Poses[j, i].isTrue = true;
+                            break;
+                        case 2:
+                            TileTmps[j, i] = Instantiate(WindMapTile);
+                            Tiles.Poses[j, i].isTrue = true;
+                            break;
+                        case 3:
+                            TileTmps[j, i] = Instantiate(EarthMapTile);
+                            Tiles.Poses[j, i].isTrue = true;
+                            break;
+                        case 4:
+                            TileTmps[j, i] = Instantiate(VoidMapTile);
+                            Tiles.Poses[j, i].isTrue = false;
+                            break;
+                    }
+                }
+                else
+                {
+                    TileTmps[j, i] = Instantiate(VoidMapTile);
+                    Tiles.Poses[j, i].isTrue = false;
+                }
+                TileInfoTmps[j, i] = TileTmps[j, i].GetComponentInChildren<TileInfo>();
+                Tiles.Poses[j, i].X = j;
+                Tiles.Poses[j, i].Y = i;
+                Tiles.Poses[j, i].TilePosition = right * (j * TileXSize + firstPosX) + up * (i * TileYSize + firstPosY); // transform.position (위치) 설정
+                Tiles.Poses[j, i].defaultColor = TileInfoTmps[j, i].TileSprite.color; // 타일 칼라 저장
+
+                TileTmps[j, i].transform.position = Tiles.Poses[j, i].TilePosition;
+            }
+        }
+        /*
+        for (int i=0;i<GridNum;i++)
+        {
+            for(int j=0;j<GridNum;j++)
             {
                 for(int k= BigGrid*i+boundary*i;k<BigGrid*(i+1)+boundary*i;k++)
                 {
@@ -184,7 +246,7 @@ public class GameManager : MonoBehaviour
                         TileTmps[l, k].transform.position = Tiles.Poses[l, k].TilePosition;
                     }
 
-                    if (j != 2)
+                    if (j != GridNum-1)
                     {
                         for (int l = BigGrid*(j+1)+boundary*j; l < BigGrid*(j+1)+boundary*(j+1); l++)
                         {
@@ -251,7 +313,7 @@ public class GameManager : MonoBehaviour
                         }
                     }
                 }
-                if (i != 2)
+                if (i != GridNum-1)
                 {
                     for (int k = BigGrid*(i+1)+boundary*i; k < BigGrid * (i + 1) + boundary * (i+1); k++)
                     {
@@ -317,7 +379,7 @@ public class GameManager : MonoBehaviour
                             Tiles.Poses[l, k].defaultColor = TileInfoTmps[l, k].TileSprite.color;
                             TileTmps[l, k].transform.position = Tiles.Poses[l, k].TilePosition;
                         }
-                        if (j != 2)
+                        if (j != GridNum-1)
                         {
                             for (int l = BigGrid * (j + 1) + boundary * j; l < BigGrid * (j + 1) + boundary * (j + 1); l++)
                             {
@@ -370,15 +432,29 @@ public class GameManager : MonoBehaviour
                 }
             }
         }
-
+        */
         TileObjs = TileTmps;
         TileInfos = TileInfoTmps;
     }
-
-    void SelectTile(TileEntity Tiles, GameObject[,] TileObjs, TileInfo[,] TileInfos)
+    
+    void GenerateTile(ref TileEntity tiles, float setPercent, float stopPercent, int Xpos, int Ypos, int SettingEnv)
     {
+        // 타일 번호, 시작 지점, 퍼질 확률, 타일
+        float changePercent = 0.1f;
 
+        tiles.TileSetting[Ypos,Xpos] = true;
+        tiles.Poses[Ypos, Xpos].TileEnv = SettingEnv;
+
+        if(Xpos>0 && Random.Range(0,101)<setPercent && !tiles.TileSetting[Ypos,Xpos-1])
+            GenerateTile(ref tiles, setPercent - changePercent, stopPercent + changePercent, Xpos - 1, Ypos, SettingEnv);
+        if(Xpos<MaxX-1 && Random.Range(0,101)<setPercent && !tiles.TileSetting[Ypos, Xpos+1])
+            GenerateTile(ref tiles, setPercent - changePercent, stopPercent + changePercent, Xpos + 1, Ypos,SettingEnv);
+        if (Ypos > 0 && Random.Range(0, 101) < setPercent && !tiles.TileSetting[Ypos-1, Xpos])
+            GenerateTile(ref tiles, setPercent - changePercent, stopPercent + changePercent, Xpos, Ypos-1,SettingEnv);
+        if (Ypos < MaxY-1 && Random.Range(0, 101) < setPercent && !tiles.TileSetting[Ypos+1, Xpos])
+            GenerateTile(ref tiles, setPercent - changePercent, stopPercent + changePercent, Xpos, Ypos+1,SettingEnv);
     }
+
 
     void MoveTo(Vector3 StartPosition, Vector3 DestPosition, GameObject gameObject)
     {
