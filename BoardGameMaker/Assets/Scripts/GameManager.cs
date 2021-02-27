@@ -27,10 +27,10 @@ public struct Pos
 
 public class GameManager : MonoBehaviour
 {
-    static int BigGrid = 9; // 기준이 되는 그리드의 크기
+    static int BigGrid = 81; // 기준이 되는 그리드의 크기
     static int boundary = 10; // 그리드의 경계너비
     static int boarder = 5; // 그리드 밖 경계(아직 미구현)
-    static int GridNum = 15; // 1행/1열당 그리드의 개수
+    static int GridNum = 3; // 1행/1열당 그리드의 개수
 
     static float setPercent = 90f;
     static float stopPercent = 100 - setPercent;
@@ -128,7 +128,7 @@ public class GameManager : MonoBehaviour
         // 0 ~ 9(row/29) * 9 , 9*9 + 9 ~ 9*18 + 9
         // (maxX/29)* i * 10 ~ (maxX/29)*(i+1)*10
         // 9 * 0 ~ 9*9
-        int SettingEnv;
+        int SettingEnv,Select;
         int Xpos, Ypos;
         for (int i= 0;i<MaxY;i++)
         {
@@ -143,12 +143,25 @@ public class GameManager : MonoBehaviour
         {
             for(int j=0;j<GridNum;j++)
             {
+                /*
                 while (true)
                 {
                     SettingEnv = Random.Range(0, 5);
                     if (TileSet[SettingEnv] > 0)
                         break;
                 }
+                */
+                Select = Random.Range(0, 101);
+
+                if (Select<= 50 / GridNum * i) // 0 이면 Gridnum + -Gridnum / Gridnum * 25
+                    SettingEnv = 0;
+                else if (Select <=50)
+                    SettingEnv = 1;
+                else if (Select <= 50/GridNum * j + 50)
+                    SettingEnv = 2;
+                else
+                    SettingEnv = 3;
+
                 Ypos = Random.Range(BigGrid * i+boundary*i, BigGrid * (i + 1) + boundary * i);
                 Xpos = Random.Range(BigGrid * j + boundary * j, BigGrid * (j + 1) + boundary * j);
                 if (!Tiles.TileSetting[Ypos,Xpos])
@@ -191,8 +204,39 @@ public class GameManager : MonoBehaviour
                 }
                 else
                 {
-                    TileTmps[j, i] = Instantiate(VoidMapTile);
-                    Tiles.Poses[j, i].isTrue = false;
+                    if (i > 0 && j > 0 && i < MaxY - 1 && j < MaxX - 1
+                        && Tiles.TileSetting[j, i - 1] &&Tiles.TileSetting[j, i + 1] && Tiles.TileSetting[j - 1, i] && Tiles.TileSetting[j + 1, i]
+                        &&Tiles.Poses[j,i-1].TileEnv==Tiles.Poses[j,i+1].TileEnv && Tiles.Poses[j,i-1].TileEnv==Tiles.Poses[j+1,i].TileEnv && Tiles.Poses[j, i - 1].TileEnv == Tiles.Poses[j - 1, i].TileEnv)
+                    {
+                        switch (Tiles.Poses[j-1, i].TileEnv)
+                        {
+                            case 0:
+                                TileTmps[j, i] = Instantiate(FireMapTile);
+                                Tiles.Poses[j, i].isTrue = true;
+                                break;
+                            case 1:
+                                TileTmps[j, i] = Instantiate(IceMapTile);
+                                Tiles.Poses[j, i].isTrue = true;
+                                break;
+                            case 2:
+                                TileTmps[j, i] = Instantiate(WindMapTile);
+                                Tiles.Poses[j, i].isTrue = true;
+                                break;
+                            case 3:
+                                TileTmps[j, i] = Instantiate(EarthMapTile);
+                                Tiles.Poses[j, i].isTrue = true;
+                                break;
+                            case 4:
+                                TileTmps[j, i] = Instantiate(VoidMapTile);
+                                Tiles.Poses[j, i].isTrue = false;
+                                break;
+                        }
+                    }
+                    else
+                    {
+                        TileTmps[j, i] = Instantiate(VoidMapTile);
+                        Tiles.Poses[j, i].isTrue = false;
+                    }
                 }
                 TileInfoTmps[j, i] = TileTmps[j, i].GetComponentInChildren<TileInfo>();
                 Tiles.Poses[j, i].X = j;
@@ -203,236 +247,6 @@ public class GameManager : MonoBehaviour
                 TileTmps[j, i].transform.position = Tiles.Poses[j, i].TilePosition;
             }
         }
-        /*
-        for (int i=0;i<GridNum;i++)
-        {
-            for(int j=0;j<GridNum;j++)
-            {
-                for(int k= BigGrid*i+boundary*i;k<BigGrid*(i+1)+boundary*i;k++)
-                {
-                    for (int l = BigGrid * j + boundary * j; l < BigGrid * (j + 1) + boundary * j; l++)
-                    {
-                        switch(Tiles.GridEnv[i,j])
-                        {
-                            case 0:
-                                TileTmps[l, k] = Instantiate(FireMapTile);
-                                Tiles.Poses[l, k].isTrue = true;
-                                break;
-                            case 1:
-                                TileTmps[l, k] = Instantiate(IceMapTile);
-                                Tiles.Poses[l, k].isTrue = true;
-                                break;
-                            case 2:
-                                TileTmps[l, k] = Instantiate(WindMapTile);
-                                Tiles.Poses[l, k].isTrue = true;
-                                break;
-                            case 3:
-                                TileTmps[l, k] = Instantiate(EarthMapTile);
-                                Tiles.Poses[l, k].isTrue = true;
-                                break;
-                            case 4:
-                                TileTmps[l, k] = Instantiate(VoidMapTile);
-                                Tiles.Poses[l, k].isTrue = false;
-                                break;
-                        }
-                        TileInfoTmps[l, k] = TileTmps[l, k].GetComponentInChildren<TileInfo>();
-                        Tiles.Poses[l, k].X = l;
-                        Tiles.Poses[l, k].Y = k;
-                        Tiles.Poses[l, k].TileEnv = Tiles.GridEnv[j,i];
-                        Tiles.Poses[l, k].TilePosition = right * (l*TileXSize + firstPosX) + up * (k*TileYSize+ firstPosY); // transform.position (위치) 설정
-                        Tiles.Poses[l, k].defaultColor = TileInfoTmps[l, k].TileSprite.color; // 타일 칼라 저장
-                        
-
-                        TileTmps[l, k].transform.position = Tiles.Poses[l, k].TilePosition;
-                    }
-
-                    if (j != GridNum-1)
-                    {
-                        for (int l = BigGrid*(j+1)+boundary*j; l < BigGrid*(j+1)+boundary*(j+1); l++)
-                        {
-                            //좌/우 간 타일 비교
-                            int boundaryNum = Random.Range(-1, boundary+1);
-                            if(l<=BigGrid*(j+1)+boundary*j+boundaryNum)
-                            {
-                                switch (Tiles.GridEnv[i, j])
-                                {
-                                    case 0:
-                                        TileTmps[l, k] = Instantiate(FireMapTile);
-                                        Tiles.Poses[l, k].isTrue = true;
-                                        break;
-                                    case 1:
-                                        TileTmps[l, k] = Instantiate(IceMapTile);
-                                        Tiles.Poses[l, k].isTrue = true;
-                                        break;
-                                    case 2:
-                                        TileTmps[l, k] = Instantiate(WindMapTile);
-                                        Tiles.Poses[l, k].isTrue = true;
-                                        break;
-                                    case 3:
-                                        TileTmps[l, k] = Instantiate(EarthMapTile);
-                                        Tiles.Poses[l, k].isTrue = true;
-                                        break;
-                                    case 4:
-                                        TileTmps[l, k] = Instantiate(VoidMapTile);
-                                        Tiles.Poses[l, k].isTrue = false;
-                                        break;
-                                }
-                            }
-                            else
-                            {
-                                switch (Tiles.GridEnv[i, j+1])
-                                {
-                                    case 0:
-                                        TileTmps[l, k] = Instantiate(FireMapTile);
-                                        Tiles.Poses[l, k].isTrue = true;
-                                        break;
-                                    case 1:
-                                        TileTmps[l, k] = Instantiate(IceMapTile);
-                                        Tiles.Poses[l, k].isTrue = true;
-                                        break;
-                                    case 2:
-                                        TileTmps[l, k] = Instantiate(WindMapTile);
-                                        Tiles.Poses[l, k].isTrue = true;
-                                        break;
-                                    case 3:
-                                        TileTmps[l, k] = Instantiate(EarthMapTile);
-                                        Tiles.Poses[l, k].isTrue = true;
-                                        break;
-                                    case 4:
-                                        TileTmps[l, k] = Instantiate(VoidMapTile);
-                                        Tiles.Poses[l, k].isTrue = false;
-                                        break;
-                                }
-                            }
-                            TileInfoTmps[l, k] = TileTmps[l, k].GetComponentInChildren<TileInfo>();
-                            Tiles.Poses[l, k].X = l;
-                            Tiles.Poses[l, k].Y = k;
-                            Tiles.Poses[l, k].TilePosition = right * (l * TileXSize + firstPosX) + up * (k * TileYSize + firstPosY);
-                            Tiles.Poses[l, k].defaultColor = TileInfoTmps[l, k].TileSprite.color;
-                            TileTmps[l, k].transform.position = Tiles.Poses[l, k].TilePosition;
-                        }
-                    }
-                }
-                if (i != GridNum-1)
-                {
-                    for (int k = BigGrid*(i+1)+boundary*i; k < BigGrid * (i + 1) + boundary * (i+1); k++)
-                    {
-                        for (int l = BigGrid * j + boundary * j; l < BigGrid * (j + 1) + boundary * j; l++)
-                        {
-                            int boundaryNum = Random.Range(-1, boundary+1);
-                            if (k <= BigGrid * (i + 1) + boundary * i  + boundaryNum)
-                            {
-                                switch (Tiles.GridEnv[i, j])
-                                {
-                                    case 0:
-                                        TileTmps[l, k] = Instantiate(FireMapTile);
-                                        Tiles.Poses[l, k].isTrue = true;
-                                        break;
-                                    case 1:
-                                        TileTmps[l, k] = Instantiate(IceMapTile);
-                                        Tiles.Poses[l, k].isTrue = true;
-                                        break;
-                                    case 2:
-                                        TileTmps[l, k] = Instantiate(WindMapTile);
-                                        Tiles.Poses[l, k].isTrue = true;
-                                        break;
-                                    case 3:
-                                        TileTmps[l, k] = Instantiate(EarthMapTile);
-                                        Tiles.Poses[l, k].isTrue = true;
-                                        break;
-                                    case 4:
-                                        TileTmps[l, k] = Instantiate(VoidMapTile);
-                                        Tiles.Poses[l, k].isTrue = false;
-                                        break;
-                                }
-                            }
-                            else
-                            {
-                                switch (Tiles.GridEnv[i+1, j])
-                                {
-                                    case 0:
-                                        TileTmps[l, k] = Instantiate(FireMapTile);
-                                        Tiles.Poses[l, k].isTrue = true;
-                                        break;
-                                    case 1:
-                                        TileTmps[l, k] = Instantiate(IceMapTile);
-                                        Tiles.Poses[l, k].isTrue = true;
-                                        break;
-                                    case 2:
-                                        TileTmps[l, k] = Instantiate(WindMapTile);
-                                        Tiles.Poses[l, k].isTrue = true;
-                                        break;
-                                    case 3:
-                                        TileTmps[l, k] = Instantiate(EarthMapTile);
-                                        Tiles.Poses[l, k].isTrue = true;
-                                        break;
-                                    case 4:
-                                        TileTmps[l, k] = Instantiate(VoidMapTile);
-                                        Tiles.Poses[l, k].isTrue = false;
-                                        break;
-                                }
-                            }
-                            TileInfoTmps[l, k] = TileTmps[l, k].GetComponentInChildren<TileInfo>();
-                            Tiles.Poses[l, k].X = l;
-                            Tiles.Poses[l, k].Y = k;
-                            Tiles.Poses[l, k].TilePosition = right * (l * TileXSize + firstPosX) + up * (k * TileYSize + firstPosY);
-                            Tiles.Poses[l, k].defaultColor = TileInfoTmps[l, k].TileSprite.color;
-                            TileTmps[l, k].transform.position = Tiles.Poses[l, k].TilePosition;
-                        }
-                        if (j != GridNum-1)
-                        {
-                            for (int l = BigGrid * (j + 1) + boundary * j; l < BigGrid * (j + 1) + boundary * (j + 1); l++)
-                            {
-                                int boundaryX = Random.Range(-1, boundary+1);
-                                int boundaryY = Random.Range(-1, boundary+1);
-                                int x = j;
-                                int y = i;
-                                //세로 -> i 관련해서
-                                if (k > BigGrid * (i + 1) + boundary * i + boundaryY)
-                                {
-                                    y++;
-                                }
-                                if(l <= BigGrid * (j + 1) + boundary * j + boundaryX)
-                                {
-                                    x++;
-                                }
-                                switch (Tiles.GridEnv[y, x])
-                                {
-                                    case 0:
-                                        TileTmps[l, k] = Instantiate(FireMapTile);
-                                        Tiles.Poses[l, k].isTrue = true;
-                                        break;
-                                    case 1:
-                                        TileTmps[l, k] = Instantiate(IceMapTile);
-                                        Tiles.Poses[l, k].isTrue = true;
-                                        break;
-                                    case 2:
-                                        TileTmps[l, k] = Instantiate(WindMapTile);
-                                        Tiles.Poses[l, k].isTrue = true;
-                                        break;
-                                    case 3:
-                                        TileTmps[l, k] = Instantiate(EarthMapTile);
-                                        Tiles.Poses[l, k].isTrue = true;
-                                        break;
-                                    case 4:
-                                        TileTmps[l, k] = Instantiate(VoidMapTile);
-                                        Tiles.Poses[l, k].isTrue = false;
-                                        break;
-                                }
-                                TileInfoTmps[l, k] = TileTmps[l, k].GetComponentInChildren<TileInfo>();
-                                Tiles.Poses[l, k].X = l;
-                                Tiles.Poses[l, k].Y = k;
-                                Tiles.Poses[l, k].TilePosition = right * (l * TileXSize + firstPosX) + up * (k * TileYSize + firstPosY);
-                                Tiles.Poses[l, k].defaultColor = TileInfoTmps[l, k].TileSprite.color;
-
-                                TileTmps[l, k].transform.position = Tiles.Poses[l, k].TilePosition;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        */
         TileObjs = TileTmps;
         TileInfos = TileInfoTmps;
     }
