@@ -27,10 +27,10 @@ public struct Pos
 
 public class GameManager : MonoBehaviour
 {
-    static int BigGrid = 81; // 기준이 되는 그리드의 크기
+    static int BigGrid = 9; // 기준이 되는 그리드의 크기
     static int boundary = 10; // 그리드의 경계너비
     static int boarder = 5; // 그리드 밖 경계(아직 미구현)
-    static int GridNum = 3; // 1행/1열당 그리드의 개수
+    static int GridNum = 10; // 1행/1열당 그리드의 개수
 
     static float setPercent = 90f;
     static float stopPercent = 100 - setPercent;
@@ -46,10 +46,12 @@ public class GameManager : MonoBehaviour
     public GameObject WindMapTile;
     public GameObject EarthMapTile;
     public GameObject VoidMapTile;
+
     int[] TileSet = new int[5];
     int maxnum = 0;
 
     public GameObject player;
+    public GameObject monster;
 
     PlayerManaging playerInfo;
 
@@ -57,9 +59,8 @@ public class GameManager : MonoBehaviour
     Vector3 right = Vector3.right;
     Vector3 foward = Vector3.forward;
 
-    TileEntity TE;
+    public TileEntity TE;
     GameObject[,] TilesArr;
-    TileInfo[,] TileInfoArr;
 
     bool isMoved, YMoved=false, XMoved=false;
     int turn;
@@ -80,7 +81,11 @@ public class GameManager : MonoBehaviour
         }
         //TileSet[4] = GridNum*GridNum*2/9;
         TileSet[4] = 0;
-        GenerateMap(ref TE, ref TilesArr, ref TileInfoArr);
+        GenerateMap(ref TE, ref TilesArr);
+        playerInfo.MaxX = MaxX;
+        playerInfo.MaxY = MaxY;
+        playerInfo.TileXSize = TileXSize;
+        playerInfo.TileYSize = TileYSize;
         while (true)
         {
             playerInfo.X = Random.Range(0, MaxX);
@@ -112,15 +117,11 @@ public class GameManager : MonoBehaviour
 
     }
 
-    void GenerateMap(ref TileEntity Tiles, ref GameObject[,] TileObjs, ref TileInfo[,] TileInfos)
+    void GenerateMap(ref TileEntity Tiles, ref GameObject[,] TileObjs)
     {
         Tiles.Poses = new Pos[MaxX,MaxY];
         GameObject[,] TileTmps = new GameObject[MaxX, MaxY];
-        TileInfo[,] TileInfoTmps = new TileInfo[MaxX, MaxY];
         Tiles.TileSetting = new bool[MaxX, MaxY];
-
-        Color defaultColor = new Color(76, 128, 35, 255);
-        Color SelectedColor = new Color(76, 128, 35, 155);
 
         float firstPosX = TileXSize/2;
         float firstPosY = TileYSize/2;
@@ -153,11 +154,13 @@ public class GameManager : MonoBehaviour
                 */
                 Select = Random.Range(0, 101);
 
-                if (Select<= 50 / GridNum * i) // 0 이면 Gridnum + -Gridnum / Gridnum * 25
+                // i 가 0에 가까울수록 얼음(1)타일의 확률이 늘어나며, i가 최대값에 가까울수록 불(0)타일의 확률이 늘어난다.
+                // j 가 0에 가까울수록 고원(2)타일의 확률이 늘어나며, j가 최대값에 가까울수록 숲(3)타일의 확률이 늘어난다.
+                if (Select<= 50 / (GridNum-1) * i) // 0 이면 Gridnum + -Gridnum / Gridnum * 25
                     SettingEnv = 0;
                 else if (Select <=50)
                     SettingEnv = 1;
-                else if (Select <= 50/GridNum * j + 50)
+                else if (Select <= 50/(GridNum-1) * j + 50)
                     SettingEnv = 2;
                 else
                     SettingEnv = 3;
@@ -238,17 +241,15 @@ public class GameManager : MonoBehaviour
                         Tiles.Poses[j, i].isTrue = false;
                     }
                 }
-                TileInfoTmps[j, i] = TileTmps[j, i].GetComponentInChildren<TileInfo>();
+
                 Tiles.Poses[j, i].X = j;
                 Tiles.Poses[j, i].Y = i;
                 Tiles.Poses[j, i].TilePosition = right * (j * TileXSize + firstPosX) + up * (i * TileYSize + firstPosY); // transform.position (위치) 설정
-                Tiles.Poses[j, i].defaultColor = TileInfoTmps[j, i].TileSprite.color; // 타일 칼라 저장
 
                 TileTmps[j, i].transform.position = Tiles.Poses[j, i].TilePosition;
             }
         }
         TileObjs = TileTmps;
-        TileInfos = TileInfoTmps;
     }
     
     void GenerateTile(ref TileEntity tiles, float setPercent, float stopPercent, int Xpos, int Ypos, int SettingEnv)

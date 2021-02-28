@@ -66,6 +66,7 @@
   <ItemGroup>
     <Compile Include="Assets\Scripts\Environment.cs" />
     <Compile Include="Assets\Scripts\GameManager.cs" />
+    <Compile Include="Assets\Scripts\MonsterManager.cs" />
     <Compile Include="Assets\Scripts\PlayerManaging.cs" />
     <Compile Include="Assets\Scripts\TileInfo.cs" />
     <Reference Include="UnityEngine">
