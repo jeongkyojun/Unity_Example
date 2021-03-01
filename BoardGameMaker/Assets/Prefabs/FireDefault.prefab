@@ -10,7 +10,6 @@ GameObject:
   m_Component:
   - component: {fileID: 6508635994106816555}
   - component: {fileID: 6988478883511763612}
-  - component: {fileID: 371862494132915818}
   m_Layer: 0
   m_Name: FireDefault
   m_TagString: Untagged
@@ -82,18 +81,3 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
---- !u!114 &371862494132915818
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7461014530000492432}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d2ddfd25b9ccf2f499671c2f15b590c8, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  TileX: 0
-  TileY: 0
-  TileSprite: {fileID: 6988478883511763612}

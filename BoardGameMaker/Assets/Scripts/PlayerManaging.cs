@@ -16,13 +16,13 @@ public class PlayerManaging : MonoBehaviour
     public GameObject GameManager;
     GameManager GM;
 
-    int moveCnt = 0;
     bool MoveLeft, MoveRight, MoveUp, MoveDown;
 
     // Start is called before the first frame update
     void Start()
     {
         GM = FindObjectOfType<GameManager>();
+        GM.MoveCntText.text = "MoveCnt : " + GM.moveCnt.ToString();
     }
 
     // Update is called once per frame
@@ -44,25 +44,44 @@ public class PlayerManaging : MonoBehaviour
 
     void Move()
     {
-        if (MoveLeft && X > 0)
+        if (GM.moveCnt > 0)
         {
-            if(GM.TE.Poses[X-1,Y].isTrue)
-                X--;
-        }
-        if (MoveRight && X < MaxX - 1)
-        {
-            if (GM.TE.Poses[X + 1,Y].isTrue)
-                X++;
-        }
-        if (MoveDown && Y > 0)
-        {
-            if (GM.TE.Poses[X,Y-1].isTrue)
-                Y--;
-        }
-        if (MoveUp && Y < MaxY - 1)
-        {
-            if (GM.TE.Poses[X,Y+1].isTrue)
-                Y++;
+            if (MoveLeft && X > 0)
+            {
+                if (GM.TE.Poses[X - 1, Y].isTrue)
+                {
+                    X--;
+                    GM.moveCnt--;
+                    GM.MoveCntText.text = "MoveCnt : " + GM.moveCnt.ToString();
+                }
+            }
+            else if (MoveRight && X < MaxX - 1)
+            {
+                if (GM.TE.Poses[X + 1, Y].isTrue)
+                {   
+                    X++;
+                    GM.moveCnt--;
+                    GM.MoveCntText.text = "MoveCnt : " + GM.moveCnt.ToString();
+                }
+            }
+            else if (MoveDown && Y > 0)
+            {
+                if (GM.TE.Poses[X, Y - 1].isTrue)
+                {
+                    Y--; 
+                    GM.moveCnt--;
+                    GM.MoveCntText.text = "MoveCnt : " + GM.moveCnt.ToString();
+                }
+            }
+            else if (MoveUp && Y < MaxY - 1)
+            {
+                if (GM.TE.Poses[X, Y + 1].isTrue)
+                { 
+                    Y++;
+                    GM.moveCnt--;
+                    GM.MoveCntText.text = "MoveCnt : " + GM.moveCnt.ToString();
+                }
+            }
         }
         transform.position = up * (TileYSize * Y + TileYSize / 2) + right * (TileXSize * X + TileXSize / 2) + forward * -3f;
     }

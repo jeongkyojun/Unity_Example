@@ -10,7 +10,6 @@ GameObject:
   m_Component:
   - component: {fileID: 2022648539262707915}
   - component: {fileID: 3632834702817574097}
-  - component: {fileID: 3108005111935195739}
   m_Layer: 0
   m_Name: IceDefault
   m_TagString: Untagged
@@ -82,18 +81,3 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
---- !u!114 &3108005111935195739
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 130460396527149949}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d2ddfd25b9ccf2f499671c2f15b590c8, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  TileX: 0
-  TileY: 0
-  TileSprite: {fileID: 3632834702817574097}
