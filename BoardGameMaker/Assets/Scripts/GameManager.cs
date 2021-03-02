@@ -9,6 +9,7 @@ public struct TileEntity
 {
     public Pos[,] Poses;
     public bool[,] TileSetting;
+    public int[,] ContinentSize;
 }
 
 public struct Pos
@@ -33,9 +34,9 @@ public struct Pos
 public class GameManager : MonoBehaviour
 {
     static int BigGrid = 9; // 기준이 되는 그리드의 크기
-    static int boundary = 10; // 그리드의 경계너비
+    static int boundary = 0; // 그리드의 경계너비
     static int border = 100;   // 그리드 테두리의 너비
-    static int GridNum = 10; // 1행/1열당 그리드의 개수
+    static int GridNum = 20; // 1행/1열당 그리드의 개수
 
     static float forestPercent = 60f;
     static float setPercent = 90f;
@@ -121,7 +122,6 @@ public class GameManager : MonoBehaviour
         {
             if (isMoved)
             {
-                //MoveTo(player.transform.position,, player);
             }
             else
             {
@@ -148,6 +148,7 @@ public class GameManager : MonoBehaviour
 
     void GenerateMap(ref TileEntity Tiles, ref GameObject[,] TileObjs, ref GameObject[,] TileEnvs)
     {
+        Tiles.ContinentSize = new int[GridNum, GridNum];
         Tiles.Poses = new Pos[MaxX,MaxY];
         GameObject[,] TileTmps = new GameObject[MaxX, MaxY];
         GameObject[,] TileEnvTmps = new GameObject[MaxX, MaxY];
@@ -184,6 +185,7 @@ public class GameManager : MonoBehaviour
             int j = UnityEngine.Random.Range(0, GridNum);
             if (!isSet[i,j])
             {
+                Tiles.ContinentSize[i, j] = 0;
                 isSet[i, j] = true;
                 MapSettingNumber++;
                 while (true)
@@ -210,10 +212,11 @@ public class GameManager : MonoBehaviour
                 Xpos = UnityEngine.Random.Range(border + BigGrid * j + boundary * j, border + BigGrid * (j + 1) + boundary * j);
                 if (!Tiles.TileSetting[Ypos, Xpos])
                 {
-                    Debug.Log("[ " + j + " , " + i + " ] Env : " + SettingEnv);
-                    GenerateTile(ref Tiles, setPercent, stopPercent, Xpos, Ypos, SettingEnv, i + j, forestPercent);
+                    //Debug.Log("[ " + j + " , " + i + " ] Env : " + SettingEnv);
+                    GenerateTile(ref Tiles, setPercent, stopPercent, Xpos, Ypos, SettingEnv, MapSettingNumber, forestPercent,i,j);
                     TileSet[SettingEnv]--;
                 }
+                Debug.Log("Tiles[ " + i + " , " + j + "] : " + Tiles.ContinentSize[i, j]);
             }
             if (MapSettingNumber==GridNum*GridNum)
                 break;
@@ -298,6 +301,88 @@ public class GameManager : MonoBehaviour
                 }
                 else
                 {
+                    int cnt = 0;
+                    int[] env = new int[4];
+                    int TileEnv = 0;
+                    for(int num=0;num<4;num++)
+                    {
+                        env[num]=0;
+                    }
+
+                    if(i>0)
+                    {
+                        if (Tiles.TileSetting[j, i - 1])
+                        {
+                            cnt++;
+                            env[Tiles.Poses[j, i - 1].TileEnv]++;
+                        }
+                    }    
+                    if(j > 0)
+                    {
+                        if (Tiles.TileSetting[j - 1, i])
+                        {
+                            cnt++;
+                            env[Tiles.Poses[j - 1, i].TileEnv]++;
+                        }
+                    }
+                    if(i < MaxY - 1)
+                    {
+                        if (Tiles.TileSetting[j, i + 1])
+                        {
+                            cnt++;
+                            env[Tiles.Poses[j, i + 1].TileEnv]++;
+                        }
+                    }
+                    if(j < MaxX - 1)
+                    {
+                        if (Tiles.TileSetting[j + 1, i])
+                        {
+                            cnt++;
+                            env[Tiles.Poses[j + 1, i].TileEnv]++;
+                        }
+                    }
+
+                    if(cnt>=3)
+                    {
+                        int min = -1;
+                        for(int num=0;num<4;num++)
+                        {
+                            if (env[num] > min)
+                            {
+                                min = env[num];
+                                TileEnv = num;
+                            }
+                        }
+                        switch (TileEnv)
+                        {
+                            case 0:
+                                TileTmps[j, i] = Instantiate(FireMapTile);
+                                Tiles.Poses[j, i].isTrue = true;
+                                break;
+                            case 1:
+                                TileTmps[j, i] = Instantiate(IceMapTile);
+                                Tiles.Poses[j, i].isTrue = true;
+                                break;
+                            case 2:
+                                TileTmps[j, i] = Instantiate(WindMapTile);
+                                Tiles.Poses[j, i].isTrue = true;
+                                break;
+                            case 3:
+                                TileTmps[j, i] = Instantiate(EarthMapTile);
+                                Tiles.Poses[j, i].isTrue = true;
+                                break;
+                            case 4:
+                                TileTmps[j, i] = Instantiate(VoidMapTile);
+                                Tiles.Poses[j, i].isTrue = false;
+                                break;
+                        }
+                    }
+                    else
+                    {
+                        TileTmps[j, i] = Instantiate(VoidMapTile);
+                        Tiles.Poses[j, i].isTrue = false;
+                    }
+                    
                     if (i > 0 && j > 0 && i < MaxY - 1 && j < MaxX - 1
                         && Tiles.TileSetting[j, i - 1] &&Tiles.TileSetting[j, i + 1] && Tiles.TileSetting[j - 1, i] && Tiles.TileSetting[j + 1, i]
                         &&Tiles.Poses[j,i-1].TileEnv==Tiles.Poses[j,i+1].TileEnv && Tiles.Poses[j,i-1].TileEnv==Tiles.Poses[j+1,i].TileEnv && Tiles.Poses[j, i - 1].TileEnv == Tiles.Poses[j - 1, i].TileEnv)
@@ -331,6 +416,7 @@ public class GameManager : MonoBehaviour
                         TileTmps[j, i] = Instantiate(VoidMapTile);
                         Tiles.Poses[j, i].isTrue = false;
                     }
+                    
                 }
 
                 Tiles.Poses[j, i].X = j;
@@ -352,15 +438,16 @@ public class GameManager : MonoBehaviour
         TileEnvs = TileEnvTmps;
     }
 
-    void GenerateTile(ref TileEntity tiles, float setPercent, float stopPercent, int Xpos, int Ypos, int SettingEnv, int continent_number, float forestPercent)
+    void GenerateTile(ref TileEntity tiles, float setPercent, float stopPercent, int Xpos, int Ypos, int SettingEnv, int continent_number, float forestPercent, int i, int j)
     {
         // 타일 번호, 시작 지점, 퍼질 확률, 타일
-        float changePercent = 0.3f;
-        float mountainPercent = 50;
+        float changePercent = 0.2f;
+        float mountainPercent = 30; // 서로 다른 대륙끼리 부딫혔을때 산맥의 생성확률
         float fire = -30, ice = -30, Earth = 0, Wind = -forestPercent;
         tiles.TileSetting[Ypos, Xpos] = true;
         tiles.Poses[Ypos, Xpos].TileEnv = SettingEnv;
         tiles.Poses[Ypos, Xpos].continent_number = continent_number;
+        tiles.ContinentSize[i, j]++;
 
         // 각 환경마다 일정확률로 숲 생성
         switch (SettingEnv)
@@ -393,105 +480,104 @@ public class GameManager : MonoBehaviour
                 break;
         }
 
-        // 경계면일시 5%확률로 산맥 생성
-        if (Xpos > 0 && UnityEngine.Random.Range(0, 101) < setPercent)
+        // 다른 대륙간 경계면일시 일정 확률로 산맥 생성
+        if (Xpos > 0)
         {
-            if(!tiles.TileSetting[Ypos, Xpos - 1])
-                GenerateTile(ref tiles, setPercent - changePercent, stopPercent + changePercent, Xpos - 1, Ypos, SettingEnv, continent_number, forestPercent-changePercent);
-            else if(tiles.Poses[Ypos,Xpos-1].continent_number != tiles.Poses[Ypos,Xpos].continent_number)
+            if (UnityEngine.Random.Range(0, 101) < setPercent)
             {
-                if (UnityEngine.Random.Range(0, 101) <= mountainPercent)
+                if (!tiles.TileSetting[Ypos, Xpos - 1])
+                    GenerateTile(ref tiles, setPercent - changePercent,
+                        stopPercent + changePercent, Xpos - 1,
+                        Ypos, SettingEnv, continent_number, forestPercent - changePercent,
+                        i, j);
+                else if (tiles.Poses[Ypos, Xpos - 1].continent_number != tiles.Poses[Ypos, Xpos].continent_number)
                 {
-                    tiles.Poses[Ypos, Xpos].isTrue = false;
-                    tiles.Poses[Ypos, Xpos].Environment = 1;
+                    if (UnityEngine.Random.Range(0, 101) <= mountainPercent)
+                    {
+                        tiles.Poses[Ypos, Xpos].isTrue = false;
+                        tiles.Poses[Ypos, Xpos].Environment = 1;
+                    }
+
+                    if (UnityEngine.Random.Range(0, 101) <= mountainPercent)
+                    {
+                        tiles.Poses[Ypos, Xpos-1].isTrue = false;
+                        tiles.Poses[Ypos, Xpos-1].Environment = 1;
+                    }
                 }
             }
         }
-        if (Xpos < MaxX - 1 && UnityEngine.Random.Range(0, 101) < setPercent)
+        if (Xpos < MaxX - 1)
         {
-            if(!tiles.TileSetting[Ypos, Xpos + 1])
-                GenerateTile(ref tiles, setPercent - changePercent, stopPercent + changePercent, Xpos + 1, Ypos, SettingEnv, continent_number, forestPercent-changePercent);
-            else if(tiles.Poses[Ypos, Xpos + 1].continent_number != tiles.Poses[Ypos, Xpos].continent_number)
+            if (UnityEngine.Random.Range(0, 101) < setPercent)
             {
-                if (UnityEngine.Random.Range(0, 101) <= mountainPercent)
+                if (!tiles.TileSetting[Ypos, Xpos + 1])
+                    GenerateTile(ref tiles, setPercent - changePercent,
+                        stopPercent + changePercent, Xpos + 1,
+                        Ypos, SettingEnv, continent_number, forestPercent - changePercent,
+                        i, j);
+                else if (tiles.Poses[Ypos, Xpos + 1].continent_number != tiles.Poses[Ypos, Xpos].continent_number)
                 {
-                    tiles.Poses[Ypos, Xpos].isTrue = false;
-                    tiles.Poses[Ypos, Xpos].Environment = 1;
+                    if (UnityEngine.Random.Range(0, 101) <= mountainPercent)
+                    {
+                        tiles.Poses[Ypos, Xpos].isTrue = false;
+                        tiles.Poses[Ypos, Xpos].Environment = 1;
+                    }
+                    if (UnityEngine.Random.Range(0, 101) <= mountainPercent)
+                    {
+                        tiles.Poses[Ypos, Xpos+1].isTrue = false;
+                        tiles.Poses[Ypos, Xpos+1].Environment = 1;
+                    }
                 }
             }
         }
-        if (Ypos > 0 && UnityEngine.Random.Range(0, 101) < setPercent)
-        {
-            if (!tiles.TileSetting[Ypos - 1, Xpos])
-                GenerateTile(ref tiles, setPercent - changePercent, stopPercent + changePercent, Xpos, Ypos - 1, SettingEnv, continent_number, forestPercent- changePercent);
-            else if (tiles.Poses[Ypos-1, Xpos].continent_number != tiles.Poses[Ypos, Xpos].continent_number)
+        if (Ypos > 0)
+        { 
+            if (UnityEngine.Random.Range(0, 101) < setPercent)
             {
-                if (UnityEngine.Random.Range(0, 101) <= mountainPercent)
+                if (!tiles.TileSetting[Ypos - 1, Xpos])
+                    GenerateTile(ref tiles, setPercent - changePercent,
+                        stopPercent + changePercent, Xpos, Ypos - 1,
+                        SettingEnv, continent_number, forestPercent - changePercent,
+                        i, j);
+                else if (tiles.Poses[Ypos - 1, Xpos].continent_number != tiles.Poses[Ypos, Xpos].continent_number)
                 {
-                    tiles.Poses[Ypos, Xpos].isTrue = false;
-                    tiles.Poses[Ypos, Xpos].Environment = 1;
+                    if (UnityEngine.Random.Range(0, 101) <= mountainPercent)
+                    {
+                        tiles.Poses[Ypos, Xpos].isTrue = false;
+                        tiles.Poses[Ypos, Xpos].Environment = 1;
+                    }
+                    if (UnityEngine.Random.Range(0, 101) <= mountainPercent)
+                    {
+                        tiles.Poses[Ypos-1, Xpos].isTrue = false;
+                        tiles.Poses[Ypos-1, Xpos].Environment = 1;
+                    }
                 }
             }
         }
-        if (Ypos < MaxY - 1 && UnityEngine.Random.Range(0, 101) < setPercent)
+        if (Ypos < MaxY - 1)
         {
-            if (!tiles.TileSetting[Ypos + 1, Xpos])
-                GenerateTile(ref tiles, setPercent - changePercent, stopPercent + changePercent, Xpos, Ypos + 1, SettingEnv, continent_number, forestPercent - changePercent);
-
-            else if (tiles.Poses[Ypos+1, Xpos].continent_number != tiles.Poses[Ypos, Xpos].continent_number)
+            if (UnityEngine.Random.Range(0, 101) < setPercent)
             {
-                if (UnityEngine.Random.Range(0, 101) <= mountainPercent)
+                if (!tiles.TileSetting[Ypos + 1, Xpos])
+                    GenerateTile(ref tiles, setPercent - changePercent,
+                        stopPercent + changePercent, Xpos, Ypos + 1,
+                        SettingEnv, continent_number, forestPercent - changePercent,
+                        i, j);
+
+                else if (tiles.Poses[Ypos + 1, Xpos].continent_number != tiles.Poses[Ypos, Xpos].continent_number)
                 {
-                    tiles.Poses[Ypos, Xpos].isTrue = false;
-                    tiles.Poses[Ypos, Xpos].Environment = 1;
+                    if (UnityEngine.Random.Range(0, 101) <= mountainPercent)
+                    {
+                        tiles.Poses[Ypos, Xpos].isTrue = false;
+                        tiles.Poses[Ypos, Xpos].Environment = 1;
+                    }
+                    if (UnityEngine.Random.Range(0, 101) <= mountainPercent)
+                    {
+                        tiles.Poses[Ypos+1, Xpos].isTrue = false;
+                        tiles.Poses[Ypos+1, Xpos].Environment = 1;
+                    }
                 }
             }
-        }
-    }
-
-
-    void MoveTo(Vector3 StartPosition, Vector3 DestPosition, GameObject gameObject)
-    {
-        gameObject.transform.position += (DestPosition - StartPosition) * Time.deltaTime;
-        if (DestPosition.y < StartPosition.y)
-        {
-            if (gameObject.transform.position.y < DestPosition.y)
-            {
-                gameObject.transform.position = Vector3.right * gameObject.transform.position.x + Vector3.up * DestPosition.y + Vector3.forward * gameObject.transform.position.z;
-                YMoved = true;
-            }
-        }
-        else
-        {
-            if (gameObject.transform.position.y > DestPosition.y)
-            {
-                gameObject.transform.position = Vector3.right * gameObject.transform.position.x + Vector3.up * DestPosition.y + Vector3.forward * gameObject.transform.position.z;
-                YMoved = true;
-            }
-        }
-
-        if(DestPosition.x < StartPosition.y)
-        {
-            if (gameObject.transform.position.x < DestPosition.x)
-            {
-                gameObject.transform.position = Vector3.right * DestPosition.x + Vector3.up * gameObject.transform.position.y + Vector3.forward * gameObject.transform.position.z;
-                XMoved = true;
-            }
-        }
-        else
-        {
-            if (gameObject.transform.position.x > DestPosition.x)
-            {
-                gameObject.transform.position = Vector3.right * DestPosition.x + Vector3.up * gameObject.transform.position.y + Vector3.forward * gameObject.transform.position.z;
-                XMoved = true;
-            }
-        }
-         
-        if(XMoved && YMoved)
-        {
-            XMoved = false;
-            YMoved = false;
-            isMoved = false;
         }
     }
 }
