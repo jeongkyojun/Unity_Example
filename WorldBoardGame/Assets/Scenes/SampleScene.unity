@@ -360,7 +360,7 @@ GameObject:
   - component: {fileID: 844750972}
   - component: {fileID: 844750975}
   m_Layer: 5
-  m_Name: Button
+  m_Name: MapSetting
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -652,7 +652,7 @@ GameObject:
   - component: {fileID: 1026558489}
   - component: {fileID: 1026558488}
   m_Layer: 5
-  m_Name: Button (1)
+  m_Name: addLava
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -734,7 +734,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 1026558488}
-        m_MethodName: OnClickBtn
+        m_MethodName: 
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -810,10 +810,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0481a822f5cf407489ddb9e00d2f5810, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  BigGrid: 30
+  BigGrid: 10
   boundary: 10
   border: 100
-  GridNum: 3
+  GridNum: 10
+  seedNumber: 0
   MaxX: 0
   MaxY: 0
   tileXSize: 2

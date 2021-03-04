@@ -19,55 +19,15 @@ public class BtnManager : MonoBehaviour
         firstPosY = GM.tileYSize / 2; // 첫 위치 지정2
     }
 
-    // Update is called once per frame
-    void Update()
+
+    public void OnClickLavaBtn()
     {
         
     }
 
-    public void OnClickBtn()
+    public void OnClickMapBtn()
     {
-        bool[,] isSet = new bool[GM.GridNum, GM.GridNum];
-        int Ypos, Xpos;
 
-        int max = UnityEngine.Random.Range(GM.GridNum, GM.GridNum * GM.GridNum);
-        for (int x=0;x<max;x++)
-        {
-            int i = UnityEngine.Random.Range(0, GM.GridNum);
-            int j = UnityEngine.Random.Range(0, GM.GridNum);
-            if (!isSet[i, j])
-            {
-                isSet[i, j] = true;
-
-                Ypos = UnityEngine.Random.Range(GM.border + GM.BigGrid * i + GM.boundary * i, GM.border + GM.BigGrid * (i + 1) + GM.boundary * i);
-                Xpos = UnityEngine.Random.Range(GM.border + GM.BigGrid * j + GM.boundary * j, GM.border + GM.BigGrid * (j + 1) + GM.boundary * j);
-
-                int settingTime = UnityEngine.Random.Range(GM.BigGrid - GM.boundary, GM.BigGrid*2);
-                // 타일에 흙을 얹는다.
-                if (GM.TE.Poses[Ypos, Xpos].high < 9)
-                    GenerateTile(ref GM.TE, settingTime,0, Xpos, Ypos, i*100+j);
-            }
-            else
-                x--;
-        }
-
-        for (int i = 0; i < GM.MaxY; i++)
-        {
-            for (int j = 0; j < GM.MaxX; j++)
-            {
-                if (GM.TE.Poses[j, i].high != GM.TE.Poses[j, i].setnum)
-                {
-                    //GM.TilesArrEtc[GM.TE.Poses[j, i].setnum, j, i] = GM.TilesArr[j, i];
-                    //GM.TilesArrEtc[GM.TE.Poses[j, i].setnum, j, i].transform.position = right * -1 *(j * GM.tileXSize + firstPosX) + up *(-1*(i * GM.tileYSize + firstPosY) +GM.MaxY* GM.TE.Poses[j, i].setnum);
-                    Destroy(GM.TilesArr[j, i]);
-                    GM.TilesArr[j, i] = Instantiate(GM.high[GM.TE.Poses[j, i].high]);
-                    GM.TE.Poses[j, i].setnum = GM.TE.Poses[j, i].high;
-                    GM.TilesArr[j, i].transform.position = right * (j * GM.tileXSize + firstPosX) + up * (i * GM.tileYSize + firstPosY); // transform.position (위치) 설정
-                }
-                GM.TE.TileNumber[j, i] = -1;
-            }
-        }
-        Debug.Log("set world , max : "+max);
     }
 
     void GenerateTile(ref Tiles tiles, int SettingTime,int setTime, int Xpos, int Ypos, int continent_number)
@@ -98,4 +58,231 @@ public class BtnManager : MonoBehaviour
             }
         }
     }
+
+    /*
+    /// <summary>
+    /// find : 시야 탐색 함수
+    /// </summary>
+    /// <param name="x"> 나의 현재위치 x 좌표 </param>
+    /// <param name="y"> 나의 현재위치 y 좌표 </param>
+    /// <param name="set"> 타일 정보 , 시야가 막히는지 아닌지 확인한다. false : 막힌다, true : 막히지 않는다.</param>
+    /// <param name="range"> 시야 범위 </param>
+    void find(int x, int y, bool[,] set, int range)
+    {
+        if(set[x,y]) // 사야가 막히지 않는다면
+        {
+
+            leftup(x,y,set, range, 1, true); // 좌상향 탐색
+            rightup(x, y, set, range, 1 , true); // 우상향 탐색
+
+            bool isSight = true;
+            #region 상향, 좌우 탐색
+            // 상향 탐색 - for문으로 해결
+            for (int i=1;i<range; i++)
+            {
+                if (!set[x, y + i])
+                {
+                    isSight = false;
+                }
+
+                if(isSight)
+                {
+
+                }
+                else
+                {
+
+                }
+            }
+
+            for (int i = 1; i < range; i++)
+            {
+                if (!set[x+i, y])
+                {
+                    isSight = false;
+                }
+
+                if (isSight)
+                {
+
+                }
+                else
+                {
+
+                }
+            }
+
+            for (int i = 1; i < range; i++)
+            {
+                if (!set[x-i, y])
+                {
+                    isSight = false;
+                }
+
+                if (isSight)
+                {
+
+                }
+                else
+                {
+
+                }
+            }
+            #endregion
+        }
+    }
+
+    void leftup(int x, int y, bool[,]set, int range, int myrange, bool isSight)
+    {
+        // 좌상향 x - myrange, y + myrange
+        
+        if(!set[x-myrange,y+myrange])
+        {
+            isSight = false;
+        }
+
+        if(isSight)
+        {
+            //시야 밝힘
+        }
+        else
+        {
+            //시야끈다.
+        }
+
+        bool VerticalSight = isSight;
+
+        // 위와 옆의 시야 확인
+        for (int i = 1; i < range-myrange; i++)
+        {
+            if (!set[x, y + i])
+            {
+                VerticalSight = false;
+            }
+
+            if (VerticalSight)
+            {
+
+            }
+            else
+            {
+
+            }
+        }
+
+        VerticalSight = isSight;
+        // 삼각형 모양으로 하려면 추가, 싫으면 제거
+        for (int i = 1; i < range-myrange; i++)
+        {
+            if (!set[x - i, y])
+            {
+                VerticalSight = false;
+            }
+
+            if (VerticalSight)
+            {
+
+            }
+            else
+            {
+
+            }
+        }
+
+        if (myrange<range-myrange)
+            leftup(x, y, set, range, myrange + 1, isSight);
+    }
+    void rightup(int x, int y, bool[,] set, int range, int myrange, bool isSight)
+    {
+        if (!set[x + myrange, y + myrange])
+        {
+            isSight = false;
+        }
+
+        if (isSight)
+        {
+            //시야 밝힘
+        }
+        else
+        {
+            //시야끈다.
+        }
+
+        bool VerticalSight = isSight;
+
+        // 위와 옆의 시야 확인
+        for (int i = 1; i < range - myrange; i++)
+        {
+            if (!set[x, y + i])
+            {
+                VerticalSight = false;
+            }
+
+            if (VerticalSight)
+            {
+
+            }
+            else
+            {
+
+            }
+        }
+
+        VerticalSight = isSight;
+        // 삼각형 모양으로 하려면 추가, 싫으면 제거
+        for (int i = 1; i < range - myrange; i++)
+        {
+            if (!set[x + i, y])
+            {
+                VerticalSight = false;
+            }
+
+            if (VerticalSight)
+            {
+
+            }
+            else
+            {
+
+            }
+        }
+
+        if (myrange < range - myrange)
+            leftup(x, y, set, range, myrange + 1, isSight);
+    }
+
+    void sightUp(int x, int y, bool[,]Tile,bool[,]Set, int range)
+    {
+        //bool[,] Tile 은 기본값이 false, 시야 true
+        //bool[,] set은 기본값이 true,장애물 false
+        // 플레이어 위치 (x,y)
+
+
+        for(int i=0;i<range;i++) // y 위치
+        {
+            for (int j = 0; j < range-i; j++) // x 위치
+            {
+                Tile[x - i, y + j] = true;
+                Tile[x + i, y + j] = true;
+            }
+        }
+
+        for (int i = 0; i < range; i++) // y 위치
+        {
+            for (int j = 0; j < range - i; j++) // x 위치
+            {
+                if(!Set[x-i,y+j])
+                {
+                    for(int n = i;n<range;n++)
+                    {
+                        for(int m = j+n;m<range;m++)
+                        {
+
+                        }
+                    }
+                }
+            }
+        }
+    }
+    */
 }

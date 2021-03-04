@@ -149,27 +149,27 @@ public class GameManager : MonoBehaviour
     void GenerateMap(ref TileEntity Tiles, ref GameObject[,] TileObjs, ref GameObject[,] TileEnvs)
     {
         Tiles.ContinentSize = new int[GridNum, GridNum];
-        Tiles.Poses = new Pos[MaxX,MaxY];
+        Tiles.Poses = new Pos[MaxX, MaxY];
         GameObject[,] TileTmps = new GameObject[MaxX, MaxY];
         GameObject[,] TileEnvTmps = new GameObject[MaxX, MaxY];
         Tiles.TileSetting = new bool[MaxX, MaxY];
         bool[,] isSet = new bool[GridNum, GridNum];
         int MapSettingNumber = 0;
 
-        float firstPosX = TileXSize/2;
-        float firstPosY = TileYSize/2;
+        float firstPosX = TileXSize / 2;
+        float firstPosY = TileYSize / 2;
 
         // 0 ~ 9(row/29) * 9 , 9*9 + 9 ~ 9*18 + 9
         // (maxX/29)* i * 10 ~ (maxX/29)*(i+1)*10
         // 9 * 0 ~ 9*9
-        int SettingEnv,Select;
+        int SettingEnv, Select;
         int Xpos, Ypos;
-        for (int i= 0;i<MaxY;i++)
+        for (int i = 0; i < MaxY; i++)
         {
-            for(int j=0;j<MaxX;j++)
+            for (int j = 0; j < MaxX; j++)
             {
                 Tiles.TileSetting[i, j] = false;
-                Tiles.Poses[i, j].TileEnv= 4;
+                Tiles.Poses[i, j].TileEnv = 4;
             }
         }
         for (int i = 0; i < GridNum; i++)
@@ -179,11 +179,13 @@ public class GameManager : MonoBehaviour
                 isSet[i, j] = false;
             }
         }
+
+        // 맵을 생성한다.
         while (true)
         {
             int i = UnityEngine.Random.Range(0, GridNum);
             int j = UnityEngine.Random.Range(0, GridNum);
-            if (!isSet[i,j])
+            if (!isSet[i, j])
             {
                 Tiles.ContinentSize[i, j] = 0;
                 isSet[i, j] = true;
@@ -213,14 +215,123 @@ public class GameManager : MonoBehaviour
                 if (!Tiles.TileSetting[Ypos, Xpos])
                 {
                     //Debug.Log("[ " + j + " , " + i + " ] Env : " + SettingEnv);
-                    GenerateTile(ref Tiles, setPercent, stopPercent, Xpos, Ypos, SettingEnv, MapSettingNumber, forestPercent,i,j);
+                    GenerateTile(ref Tiles, setPercent, stopPercent, Xpos, Ypos, SettingEnv, MapSettingNumber, forestPercent, i, j);
                     TileSet[SettingEnv]--;
                 }
                 Debug.Log("Tiles[ " + i + " , " + j + "] : " + Tiles.ContinentSize[i, j]);
             }
-            if (MapSettingNumber==GridNum*GridNum)
+            if (MapSettingNumber == GridNum * GridNum)
                 break;
         }
+
+        //맵을 다듬는다. (3회실행)
+        for (int number = 0; number < 1; number++)
+        {
+            for (int i = 0; i < MaxY; i++)
+            {
+                for (int j = 0; j < MaxX; j++)
+                {
+                    // 카운트 설정
+                    int cnt = 0;
+                    int[] env = new int[5]; // 주변 환경값 저장
+                    int TileEnv = 0; // 타일 속성 설정
+
+                    // 주변 환경값 초기화
+                    for (int num = 0; num < 4; num++)
+                    {
+                        env[num] = 0;
+                    }
+
+                    // 주변 타일 값 확인하기 - 상 하 좌 우 대각선 8개 중 땅이 더 많을 경우 메운다.
+                    if (i > 0) // 하
+                    {
+                        if (Tiles.TileSetting[j, i - 1])
+                        {
+                            cnt++;
+                            env[Tiles.Poses[j, i - 1].TileEnv]++;
+                        }
+  
+                        if (j > 0) //좌측 하단
+                        {
+                            if (Tiles.TileSetting[j - 1, i - 1])
+                            {
+                                cnt++;
+                                env[Tiles.Poses[j - 1, i-1].TileEnv]++;
+                            }
+                        }
+
+                        if (j < MaxX - 1)//우측 하단
+                        {
+                            if (Tiles.TileSetting[j + 1, i - 1])
+                            {
+                                cnt++;
+                                env[Tiles.Poses[j + 1, i - 1].TileEnv]++;
+                            }
+                        }
+                        
+                    }
+                    if (j > 0) //좌
+                    {
+                        if (Tiles.TileSetting[j - 1, i])
+                        {
+                            cnt++;
+                            env[Tiles.Poses[j - 1, i].TileEnv]++;
+                        }
+                    }
+                    if (i < MaxY - 1) // 상
+                    {
+                        if (Tiles.TileSetting[j, i + 1])
+                        {
+                            cnt++;
+                            env[Tiles.Poses[j, i + 1].TileEnv]++;
+                        }
+
+                        if (j > 0) //좌측 상단
+                        {
+                            if (Tiles.TileSetting[j - 1, i + 1])
+                            {
+                                cnt++;
+                                env[Tiles.Poses[j - 1, i + 1].TileEnv]++;
+                            }
+                        }
+
+                        if (j < MaxX - 1)//우측 상단
+                        {
+                            if (Tiles.TileSetting[j + 1, i+1])
+                            {
+                                cnt++;
+                                env[Tiles.Poses[j + 1, i + 1].TileEnv]++;
+                            }
+                        }
+
+                    }
+                    if (j < MaxX - 1)//우
+                    {
+                        if (Tiles.TileSetting[j + 1, i])
+                        {
+                            cnt++;
+                            env[Tiles.Poses[j + 1, i].TileEnv]++;
+                        }
+                    }
+
+                    if (cnt >= 5)
+                    {
+                        int min = -1;
+                        for (int num = 0; num < 4; num++)
+                        {
+                            if (env[num] > min)
+                            {
+                                min = env[num];
+                                TileEnv = num;
+                            }
+                        }
+                        Tiles.TileSetting[j, i] = true;
+                        Tiles.Poses[j, i].TileEnv = TileEnv;
+                    }
+                }
+            }
+        }
+
         for(int i=0;i<MaxY;i++)
         {
             for(int j=0;j<MaxX;j++)
@@ -301,122 +412,8 @@ public class GameManager : MonoBehaviour
                 }
                 else
                 {
-                    int cnt = 0;
-                    int[] env = new int[4];
-                    int TileEnv = 0;
-                    for(int num=0;num<4;num++)
-                    {
-                        env[num]=0;
-                    }
-
-                    if(i>0)
-                    {
-                        if (Tiles.TileSetting[j, i - 1])
-                        {
-                            cnt++;
-                            env[Tiles.Poses[j, i - 1].TileEnv]++;
-                        }
-                    }    
-                    if(j > 0)
-                    {
-                        if (Tiles.TileSetting[j - 1, i])
-                        {
-                            cnt++;
-                            env[Tiles.Poses[j - 1, i].TileEnv]++;
-                        }
-                    }
-                    if(i < MaxY - 1)
-                    {
-                        if (Tiles.TileSetting[j, i + 1])
-                        {
-                            cnt++;
-                            env[Tiles.Poses[j, i + 1].TileEnv]++;
-                        }
-                    }
-                    if(j < MaxX - 1)
-                    {
-                        if (Tiles.TileSetting[j + 1, i])
-                        {
-                            cnt++;
-                            env[Tiles.Poses[j + 1, i].TileEnv]++;
-                        }
-                    }
-
-                    if(cnt>=3)
-                    {
-                        int min = -1;
-                        for(int num=0;num<4;num++)
-                        {
-                            if (env[num] > min)
-                            {
-                                min = env[num];
-                                TileEnv = num;
-                            }
-                        }
-                        switch (TileEnv)
-                        {
-                            case 0:
-                                TileTmps[j, i] = Instantiate(FireMapTile);
-                                Tiles.Poses[j, i].isTrue = true;
-                                break;
-                            case 1:
-                                TileTmps[j, i] = Instantiate(IceMapTile);
-                                Tiles.Poses[j, i].isTrue = true;
-                                break;
-                            case 2:
-                                TileTmps[j, i] = Instantiate(WindMapTile);
-                                Tiles.Poses[j, i].isTrue = true;
-                                break;
-                            case 3:
-                                TileTmps[j, i] = Instantiate(EarthMapTile);
-                                Tiles.Poses[j, i].isTrue = true;
-                                break;
-                            case 4:
-                                TileTmps[j, i] = Instantiate(VoidMapTile);
-                                Tiles.Poses[j, i].isTrue = false;
-                                break;
-                        }
-                    }
-                    else
-                    {
-                        TileTmps[j, i] = Instantiate(VoidMapTile);
-                        Tiles.Poses[j, i].isTrue = false;
-                    }
-                    
-                    if (i > 0 && j > 0 && i < MaxY - 1 && j < MaxX - 1
-                        && Tiles.TileSetting[j, i - 1] &&Tiles.TileSetting[j, i + 1] && Tiles.TileSetting[j - 1, i] && Tiles.TileSetting[j + 1, i]
-                        &&Tiles.Poses[j,i-1].TileEnv==Tiles.Poses[j,i+1].TileEnv && Tiles.Poses[j,i-1].TileEnv==Tiles.Poses[j+1,i].TileEnv && Tiles.Poses[j, i - 1].TileEnv == Tiles.Poses[j - 1, i].TileEnv)
-                    {
-                        switch (Tiles.Poses[j-1, i].TileEnv)
-                        {
-                            case 0:
-                                TileTmps[j, i] = Instantiate(FireMapTile);
-                                Tiles.Poses[j, i].isTrue = true;
-                                break;
-                            case 1:
-                                TileTmps[j, i] = Instantiate(IceMapTile);
-                                Tiles.Poses[j, i].isTrue = true;
-                                break;
-                            case 2:
-                                TileTmps[j, i] = Instantiate(WindMapTile);
-                                Tiles.Poses[j, i].isTrue = true;
-                                break;
-                            case 3:
-                                TileTmps[j, i] = Instantiate(EarthMapTile);
-                                Tiles.Poses[j, i].isTrue = true;
-                                break;
-                            case 4:
-                                TileTmps[j, i] = Instantiate(VoidMapTile);
-                                Tiles.Poses[j, i].isTrue = false;
-                                break;
-                        }
-                    }
-                    else
-                    {
-                        TileTmps[j, i] = Instantiate(VoidMapTile);
-                        Tiles.Poses[j, i].isTrue = false;
-                    }
-                    
+                    TileTmps[j, i] = Instantiate(VoidMapTile);
+                    Tiles.Poses[j, i].isTrue = false;
                 }
 
                 Tiles.Poses[j, i].X = j;
