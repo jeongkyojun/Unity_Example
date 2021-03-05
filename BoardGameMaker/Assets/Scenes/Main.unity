@@ -1078,6 +1078,9 @@ MonoBehaviour:
     type: 3}
   VoidMapTile: {fileID: 1142480614265613752, guid: 6dbd094cda93d8e478a6dcf227813ca7,
     type: 3}
+  MagmaTile: {fileID: 2750372069913593473, guid: 3599ed814ee781e4a86c42c6aec1afa4,
+    type: 3}
+  LakeTile: {fileID: 464760349143419222, guid: 4f11fba390846584d810050abb1e64d0, type: 3}
   FireForest: {fileID: 3512548798021488108, guid: 2ab31b295a765f74cbb4f8d4bd6e4f26,
     type: 3}
   IceForest: {fileID: 5602184586753749339, guid: 8d22f73b27523a948b820ebc5a1df9b0,

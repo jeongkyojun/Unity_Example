@@ -7,10 +7,20 @@ using System;
 
 public struct TileEntity
 {
-    public Pos[,] Poses;
-    public bool[,] TileSetting;
-    public int[,] ContinentSize;
+    public Pos[,] Poses;// 각 위치 저장
+    public bool[,] TileSetting;// 땅이 있는지 없는지 확인
+    public PosInfo[,] startPoint; // 시작지점 저장
 }
+
+public struct PosInfo
+{
+    // 위치, 
+    public Vector3 TilePosition; // 타일위치
+    public int X, Y;
+    public int TileEnv; // 타일환경 0:불, 1:얼음, 2:바람, 3:땅
+    public int ContinentSize; // 지역 기준 범위
+    public int continent_number; // 지역 번호
+};
 
 public struct Pos
 {
@@ -25,6 +35,9 @@ public struct Pos
     public int TileEnv; // 타일환경 0:불, 1:얼음, 2:바람, 3:땅
     public int Environment; // 세부환경 0:평지, 1:산, 2:숲
     public int TileStatus; // 타일 상태 여부 - 몬스터나 어떠한 이벤트가 있는지 확인
+
+    public int lakeType; // 0:땅, 1:호수, 2:바다
+    public int lakeEnv; // 호수의 속성 의미 0:불 = 용암, 그 외 : 물
 
     public Color defaultColor;
 
@@ -42,6 +55,8 @@ public class GameManager : MonoBehaviour
     static float setPercent = 90f;
     static float stopPercent = 100 - setPercent;
 
+    int ScaleingNum = 2;
+
     static int MaxX = border*2 + BigGrid * GridNum + boundary * (GridNum-1);
     static int MaxY = border*2 + BigGrid * GridNum + boundary * (GridNum-1);
     float TileXSize = 2;
@@ -52,7 +67,10 @@ public class GameManager : MonoBehaviour
     public GameObject IceMapTile;
     public GameObject WindMapTile;
     public GameObject EarthMapTile;
+    
     public GameObject VoidMapTile;
+    public GameObject MagmaTile;
+    public GameObject LakeTile;
 
     public GameObject FireForest;
     public GameObject IceForest;
@@ -148,8 +166,9 @@ public class GameManager : MonoBehaviour
 
     void GenerateMap(ref TileEntity Tiles, ref GameObject[,] TileObjs, ref GameObject[,] TileEnvs)
     {
-        Tiles.ContinentSize = new int[GridNum, GridNum];
         Tiles.Poses = new Pos[MaxX, MaxY];
+        Tiles.startPoint = new PosInfo[GridNum, GridNum]; // 지점 관련 정보 저장 ( 시작점, 범위, 넓이 등 ) 
+
         GameObject[,] TileTmps = new GameObject[MaxX, MaxY];
         GameObject[,] TileEnvTmps = new GameObject[MaxX, MaxY];
         Tiles.TileSetting = new bool[MaxX, MaxY];
@@ -187,7 +206,6 @@ public class GameManager : MonoBehaviour
             int j = UnityEngine.Random.Range(0, GridNum);
             if (!isSet[i, j])
             {
-                Tiles.ContinentSize[i, j] = 0;
                 isSet[i, j] = true;
                 MapSettingNumber++;
                 while (true)
@@ -212,20 +230,29 @@ public class GameManager : MonoBehaviour
 
                 Ypos = UnityEngine.Random.Range(border + BigGrid * i + boundary * i, border + BigGrid * (i + 1) + boundary * i);
                 Xpos = UnityEngine.Random.Range(border + BigGrid * j + boundary * j, border + BigGrid * (j + 1) + boundary * j);
+
+                // 시작지점 관련 정보 저장
+                Tiles.startPoint[i, j].X = Xpos;
+                Tiles.startPoint[i, j].Y = Ypos;
+                Tiles.startPoint[i, j].continent_number = MapSettingNumber;
+                Tiles.startPoint[i, j].ContinentSize = 0;
+                Tiles.startPoint[i, j].TileEnv = SettingEnv;
+
                 if (!Tiles.TileSetting[Ypos, Xpos])
                 {
                     //Debug.Log("[ " + j + " , " + i + " ] Env : " + SettingEnv);
                     GenerateTile(ref Tiles, setPercent, stopPercent, Xpos, Ypos, SettingEnv, MapSettingNumber, forestPercent, i, j);
                     TileSet[SettingEnv]--;
                 }
-                Debug.Log("Tiles[ " + i + " , " + j + "] : " + Tiles.ContinentSize[i, j]);
+                Debug.Log("Tiles[ " + i + " , " + j + "] : " + Tiles.startPoint[i,j].ContinentSize);
             }
             if (MapSettingNumber == GridNum * GridNum)
                 break;
         }
 
-        //맵을 다듬는다. (3회실행)
-        for (int number = 0; number < 1; number++)
+        //맵을 다듬는다. (반복수행)
+        #region 맵 스케일링
+        for (int number = 0; number < ScaleingNum; number++)
         {
             for (int i = 0; i < MaxY; i++)
             {
@@ -331,8 +358,239 @@ public class GameManager : MonoBehaviour
                 }
             }
         }
+        #endregion
 
-        for(int i=0;i<MaxY;i++)
+        #region 호수 인식
+        for (int i = 0; i < MaxY; i++)
+        {
+            for (int j = 0; j < MaxX; j++)
+            {
+                if (!Tiles.TileSetting[j, i]) // 현재 타일이 땅이아닌, 물이라면
+                {
+                    if (i == 0)
+                    {
+                        if (j != 0) // 끝 지점인 경우 바다이다.
+                        {
+                            if (Tiles.Poses[j - 1, i].lakeType != 2) // 바로 이전 타일이 바다가 아닌경우
+                            {
+                                Tiles.Poses[j, i].lakeType = 1;
+                            }
+                            else
+                            {
+                                Tiles.Poses[j, i].lakeType = 2;
+                            }
+                        }
+                        else
+                        {
+                            Tiles.Poses[j, i].lakeType = 2;
+                        }
+                    }
+                    else
+                    {
+                        if (j != 0) // 끝 지점인 경우 바다이다.
+                        {
+                            if (Tiles.Poses[j, i - 1].lakeType != 2 && Tiles.Poses[j - 1, i].lakeType != 2)//바로 이전 타일과, 바로 위의 타일이 바다가 아닌 경우
+                            {
+                                Tiles.Poses[j, i].lakeType = 1;
+                            }
+                            else
+                            {
+                                Tiles.Poses[j, i].lakeType = 2;
+                            }
+                        }
+                        else
+                        {
+                            Tiles.Poses[j, i].lakeType = 2;
+                        }
+                    }
+                }
+                else
+                {
+                    Tiles.Poses[j, i].lakeType = 0;
+                }
+            }
+
+            for(int j=MaxX-1;j>=0;j--)
+            {
+                // 거꾸로 수행
+                if (!Tiles.TileSetting[j, i]) // 현재 타일이 땅이아닌, 물이라면
+                {
+                    if (i == 0)
+                    {
+                        if (j != MaxX-1) // 끝 지점인 경우 바다이다.
+                        {
+                            if (Tiles.Poses[j + 1, i].lakeType != 2) // 바로 이전 타일이 바다가 아닌경우
+                            {
+                                //만약 현재타일이 바다인 경우 건너뛴다.
+                                if(Tiles.Poses[j,i].lakeType!=2)
+                                    Tiles.Poses[j, i].lakeType = 1;
+                            }
+                            else
+                            {
+                                Tiles.Poses[j, i].lakeType = 2;
+                            }
+                        }
+                        else
+                        {
+                            Tiles.Poses[j, i].lakeType = 2;
+                        }
+                    }
+                    else
+                    {
+                        if (j != MaxX-1) // 끝 지점인 경우 바다이다.
+                        {
+                            if (Tiles.Poses[j, i - 1].lakeType != 2 && Tiles.Poses[j + 1, i].lakeType != 2)//바로 이전 타일과, 바로 위의 타일이 바다가 아닌 경우
+                            {
+                                //만약 현재타일이 바다인 경우 건너뛴다.
+                                if (Tiles.Poses[j , i].lakeType != 2)
+                                    Tiles.Poses[j, i].lakeType = 1;
+                            }
+                            else
+                            {
+                                Tiles.Poses[j, i].lakeType = 2;
+                            }
+                        }
+                        else
+                        {
+                            Tiles.Poses[j, i].lakeType = 2;
+                        }
+                    }
+                }
+                else
+                {
+                    Tiles.Poses[j, i].lakeType = 0;
+                }
+            }
+        }
+
+        for (int i = MaxY-1; i >=0; i--)
+        {
+            for (int j = 0; j < MaxX; j++)
+            {
+                if (!Tiles.TileSetting[j, i]) // 현재 타일이 땅이아닌, 물이라면
+                {
+                    if (i == MaxY-1)
+                    {
+                        if (j != 0) // 끝 지점인 경우 바다이다.
+                        {
+                            if (Tiles.Poses[j - 1, i].lakeType != 2) // 바로 이전 타일이 바다가 아닌경우
+                            {
+                                if (Tiles.Poses[j, i].lakeType != 2)
+                                    Tiles.Poses[j, i].lakeType = 1;
+                            }
+                            else
+                            {
+                                Tiles.Poses[j, i].lakeType = 2;
+                            }
+                        }
+                        else
+                        {
+                            Tiles.Poses[j, i].lakeType = 2;
+                        }
+                    }
+                    else
+                    {
+                        if (j != 0) // 끝 지점인 경우 바다이다.
+                        {
+                            if (Tiles.Poses[j, i + 1].lakeType != 2 && Tiles.Poses[j - 1, i].lakeType != 2)//바로 이전 타일과, 바로 위의 타일이 바다가 아닌 경우
+                            {
+                                if (Tiles.Poses[j, i].lakeType != 2)
+                                    Tiles.Poses[j, i].lakeType = 1;
+                            }
+                            else
+                            {
+                                Tiles.Poses[j, i].lakeType = 2;
+                            }
+                        }
+                        else
+                        {
+                            Tiles.Poses[j, i].lakeType = 2;
+                        }
+                    }
+                }
+                else
+                {
+                    Tiles.Poses[j, i].lakeType = 0;
+                }
+            }
+
+            for (int j = MaxX - 1; j >= 0; j--)
+            {
+                // 거꾸로 수행
+                if (!Tiles.TileSetting[j, i]) // 현재 타일이 땅이아닌, 물이라면
+                {
+                    if (i == MaxY-1)
+                    {
+                        if (j != MaxX - 1) // 끝 지점인 경우 바다이다.
+                        {
+                            if (Tiles.Poses[j + 1, i].lakeType != 2) // 바로 이전 타일이 바다가 아닌경우
+                            {
+                                //만약 현재타일이 바다인 경우 건너뛴다.
+                                if (Tiles.Poses[j, i].lakeType != 2)
+                                    Tiles.Poses[j, i].lakeType = 1;
+                            }
+                            else
+                            {
+                                Tiles.Poses[j, i].lakeType = 2;
+                            }
+                        }
+                        else
+                        {
+                            Tiles.Poses[j, i].lakeType = 2;
+                        }
+                    }
+                    else
+                    {
+                        if (j != MaxX - 1) // 끝 지점인 경우 바다이다.
+                        {
+                            if (Tiles.Poses[j, i + 1].lakeType != 2 && Tiles.Poses[j + 1, i].lakeType != 2)//바로 이전 타일과, 바로 위의 타일이 바다가 아닌 경우
+                            {
+                                //만약 현재타일이 바다인 경우 건너뛴다.
+                                if (Tiles.Poses[j, i].lakeType != 2)
+                                    Tiles.Poses[j, i].lakeType = 1;
+                            }
+                            else
+                            {
+                                Tiles.Poses[j, i].lakeType = 2;
+                            }
+                        }
+                        else
+                        {
+                            Tiles.Poses[j, i].lakeType = 2;
+                        }
+                    }
+                }
+                else
+                {
+                    Tiles.Poses[j, i].lakeType = 0;
+                }
+            }
+        }
+        #endregion
+
+        // 시작지점에 몬스터를 깔아본다.
+        for (int i = 0; i < GridNum; i++)
+        {
+            for (int j = 0; j < GridNum; j++)
+            {
+                if (Tiles.startPoint[i, j].ContinentSize > 50)
+                {
+                    for (int a = -1; a <= 1; a++)
+                    {
+                        for (int b = -1; b <= 1; b++)
+                        {
+                            Tiles.Poses[Tiles.startPoint[i, j].Y + b, Tiles.startPoint[i, j].X + a].isTrue = false;
+                            Tiles.Poses[Tiles.startPoint[i, j].Y + b, Tiles.startPoint[i, j].X + a].Environment = 0;
+                            GameObject Monster = Instantiate(monster);
+                            Monster.transform.position = right * ((Tiles.startPoint[i, j].X + a) * TileXSize + firstPosX) + up * ((Tiles.startPoint[i, j].Y + b) * TileYSize + firstPosY) + foward * -5;
+                        }
+                    }
+                }
+            }
+        }
+
+        #region 맵 설치
+        for (int i=0;i<MaxY;i++)
         {
             for(int j=0;j<MaxX;j++)
             {
@@ -403,7 +661,7 @@ public class GameManager : MonoBehaviour
                                     break;
                             }
                             break;
-                        case 4:
+                        case 4: // 궂이 필요는 없음 ( TileSetting = false가 물이므로 )
                             TileTmps[j, i] = Instantiate(VoidMapTile);
                             Tiles.Poses[j, i].isTrue = false;
                             break;
@@ -412,8 +670,21 @@ public class GameManager : MonoBehaviour
                 }
                 else
                 {
-                    TileTmps[j, i] = Instantiate(VoidMapTile);
-                    Tiles.Poses[j, i].isTrue = false;
+                    switch (Tiles.Poses[j, i].lakeType)
+                    {
+                        case 0: // 땅이라 딱히 필요는 없음
+                            TileTmps[j, i] = Instantiate(MagmaTile);
+                            Tiles.Poses[j, i].isTrue = false;
+                            break;
+                        case 1: //호수인 경우
+                            TileTmps[j, i] = Instantiate(LakeTile);
+                            Tiles.Poses[j, i].isTrue = false;
+                            break;
+                        case 2: // 바다인 경우 - 상관 없음
+                            TileTmps[j, i] = Instantiate(VoidMapTile);
+                            Tiles.Poses[j, i].isTrue = false;
+                            break;
+                    }
                 }
 
                 Tiles.Poses[j, i].X = j;
@@ -431,6 +702,7 @@ public class GameManager : MonoBehaviour
                 }
             }
         }
+        #endregion
         TileObjs = TileTmps;
         TileEnvs = TileEnvTmps;
     }
@@ -444,7 +716,7 @@ public class GameManager : MonoBehaviour
         tiles.TileSetting[Ypos, Xpos] = true;
         tiles.Poses[Ypos, Xpos].TileEnv = SettingEnv;
         tiles.Poses[Ypos, Xpos].continent_number = continent_number;
-        tiles.ContinentSize[i, j]++;
+        tiles.startPoint[i, j].ContinentSize++;
 
         // 각 환경마다 일정확률로 숲 생성
         switch (SettingEnv)
