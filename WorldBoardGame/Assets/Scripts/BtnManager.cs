@@ -30,35 +30,6 @@ public class BtnManager : MonoBehaviour
 
     }
 
-    void GenerateTile(ref Tiles tiles, int SettingTime,int setTime, int Xpos, int Ypos, int continent_number)
-    {
-        if (tiles.Poses[Ypos, Xpos].high < 9)
-        {
-            tiles.Poses[Ypos, Xpos].high++;
-            tiles.TileNumber[Ypos, Xpos] = continent_number;
-            tiles.Poses[Ypos, Xpos].continent_number = continent_number;
-        }
-        if(SettingTime > setTime)
-        {
-            if(Xpos>0 && tiles.TileNumber[Ypos,Xpos-1]!=continent_number)
-            {
-                GenerateTile(ref tiles, SettingTime, setTime + 1, Xpos - 1, Ypos, continent_number);
-            }
-            if(Ypos>0 && tiles.TileNumber[Ypos-1, Xpos] != continent_number)
-            {
-                GenerateTile(ref tiles, SettingTime, setTime + 1, Xpos, Ypos-1, continent_number);
-            }
-            if(Xpos<GM.MaxX-1 && tiles.TileNumber[Ypos, Xpos + 1] != continent_number)
-            {
-                GenerateTile(ref tiles, SettingTime, setTime + 1, Xpos + 1, Ypos, continent_number);
-            }
-            if(Ypos<GM.MaxY-1 && tiles.TileNumber[Ypos+1, Xpos] != continent_number)
-            {
-                GenerateTile(ref tiles, SettingTime, setTime + 1, Xpos, Ypos+1, continent_number);
-            }
-        }
-    }
-
     /*
     /// <summary>
     /// find : 시야 탐색 함수

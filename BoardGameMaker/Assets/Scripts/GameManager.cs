@@ -55,7 +55,7 @@ public class GameManager : MonoBehaviour
     static float setPercent = 90f;
     static float stopPercent = 100 - setPercent;
 
-    int ScaleingNum = 2;
+    int ScaleingNum = 1;
 
     static int MaxX = border*2 + BigGrid * GridNum + boundary * (GridNum-1);
     static int MaxY = border*2 + BigGrid * GridNum + boundary * (GridNum-1);

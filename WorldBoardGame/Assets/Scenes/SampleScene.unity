@@ -810,10 +810,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0481a822f5cf407489ddb9e00d2f5810, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  BigGrid: 10
-  boundary: 10
+  GridSize: 10
+  boundary: 5
   border: 100
-  GridNum: 10
+  GridNum: 5
+  survive: 0
+  die: 0
+  rotateNum: 0
+  seed: 15
   seedNumber: 0
   MaxX: 0
   MaxY: 0

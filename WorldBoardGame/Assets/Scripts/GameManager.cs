@@ -16,10 +16,14 @@ public struct Tiles
 public struct Position
 {
     public int x,y; // 가로, 세로
-    public int high; // 높낮이
-    public int continent_number;
+
+    public int life; // 세포 자동화의 수명
+    public int surviveTime; // 생존 주기 (0 부터 시작하여 점점 늘어난다.)
+
+    public bool isDead;// 칸이 죽은 셀인지 아닌지를 확인하는 변수 ( true면 사망, false면 생존 )
+
     public int water_info; // 0 이면 물, 1이면 용암
-    public int Env; // 환경 설정
+    public int Env; // 환경 설정 0,1,2,3,4 로 구성, 4는 물 
 };
 
 public struct point
@@ -33,10 +37,22 @@ public struct point
 public class GameManager : MonoBehaviour
 {
     // 맵 구성 관련 정보
-    public int BigGrid; // 기준이 되는 그리드의 크기
-    public int boundary; // 그리드의 경계너비 - 너비가 클수록 산이 덜 뭉친다.
-    public int border =100;   // 그리드 테두리의 너비
-    public int GridNum; // 1행/1열당 그리드의 개수 그리드 개수가 많을수록 산이 많아진다.
+    [Header("맵 관련 정보")]
+    public int GridSize; // 기준이 되는 그리드의 크기
+    public int boundary;  // 그리드의 경계너비 - 너비가 클수록 산이 덜 뭉친다.
+    public int border;   // 그리드 테두리의 너비
+    public int GridNum;  // 1행/1열당 그리드의 개수 그리드 개수가 많을수록 산이 많아진다.
+
+    // 세포 자동화 방식의 생존 및 사망 숫자
+    [Header("셀룰러 오토마타 정보")]
+    public int survive;
+    public int die;
+
+    [Header("반복횟수")]
+    public int rotateNum;
+
+    [Header("랜덤관련")]
+    public int seed;
 
     float setPercent = 40;
     //static float stopPercent = 10;
@@ -68,12 +84,14 @@ public class GameManager : MonoBehaviour
 
     // Start is called before the first frame update
     void Start()
-    {
-        MaxX = border * 2 + BigGrid * GridNum + boundary * (GridNum - 1);
-        MaxY = border * 2 + BigGrid * GridNum + boundary * (GridNum - 1);
+    {   
+        MaxX = border * 2 + GridSize * GridNum + boundary * (GridNum - 1);
+        MaxY = border * 2 + GridSize * GridNum + boundary * (GridNum - 1);
         
         firstPosX = tileXSize / 2;
         firstPosY = tileYSize / 2;
+
+        Random.seed = seed;
 
         GenerateMap(ref TE, ref TilesArr); // 맵 생성
         //맵 스케일링
@@ -89,140 +107,79 @@ public class GameManager : MonoBehaviour
     void GenerateMap(ref Tiles Tiles, ref GameObject[,] TileObjs)
     {
         // 타일 번호 지정
-        Tiles.TileNumber = new int[MaxY, MaxX];
-        Tiles.TileSet = new bool[MaxY, MaxX];
+        
 
-        Tiles.Poses = new Position[MaxX, MaxY]; // 타일 정보 배열
         bool[,] isSet = new bool[GridNum, GridNum]; // 그리드 사용여부 확인
 
         int Xpos, Ypos;
-        List<point> pointQ = new List<point>();
 
         /*
         //UnityEngine.Random.seed = seedNumber; // 수행시 같은 숫자만 나오기때문에 따로 가공과정 필요
         */
 
+        // 맵 초기화
+        Tiles = MapInit();
+
+        // 무작위 맵 채우기
+        RandomMapFilling(ref Tiles);
+        
+        // 맵 스케일링 시작 ( rotateNum 만큼 반복 )
+        MapScaling(ref Tiles, rotateNum);
+
+
+    }
+
+    Tiles MapInit()
+    {
+        Tiles tileTmp = new Tiles();
+        tileTmp.TileNumber = new int[MaxY, MaxX];
+        tileTmp.TileSet = new bool[MaxY, MaxX];
+
+        tileTmp.Poses = new Position[MaxX, MaxY]; // 타일 정보 배열
         // 기본 타일 초기화 - 무에서 시작한다.
         for (int i = 0; i < MaxY; i++)
         {
             for (int j = 0; j < MaxX; j++)
             {
-                Tiles.Poses[i, j].high = UnityEngine.Random.Range(0,2);
-                Tiles.TileNumber[i, j] = -1;
-                Tiles.TileSet[i, j] = false;
+                // 모든 타일을 죽은 상태의 물타일로 변환
+                tileTmp.Poses[j, i].Env = 4;
+                tileTmp.Poses[j, i].isDead = true;
             }
         }
 
-        // 그리드 초기화
-        for (int i = 0; i < GridNum; i++)
-        {
-            for (int j = 0; j < GridNum; j++)
-            {
-                isSet[i, j] = false;
-            }
-        }
-
-        for(int i=0;i<GridNum * (GridNum-1);i++)
-        {
-            int x = UnityEngine.Random.Range(0, GridNum);
-            int y = UnityEngine.Random.Range(0, GridNum);
-
-            if (isSet[y, x])
-                i--;
-            else
-            {
-                int k = UnityEngine.Random.Range(border + x * (BigGrid + boundary), border + x * (BigGrid + boundary) + boundary);
-                int l = UnityEngine.Random.Range(border + y * (BigGrid + boundary), border + y * (BigGrid + boundary) + boundary);
-                isSet[y, x] = true;
-                point p = new point();
-                p.x = k;
-                p.y = l;
-                p.tilenumber = i;
-                p.Env = UnityEngine.Random.Range(1, 4);
-                pointQ.Add(p);
-            }
-        }
-
-        GenerateTile(ref Tiles, ref TileObjs, ref pointQ, setPercent, changePercent);
+        return tileTmp;
     }
 
-    void GenerateTile(ref Tiles Tiles,ref GameObject[,] TileObjs, ref List<point> pointQ,float setPercent, float changePercent)
+    void RandomMapFilling(ref Tiles tiles)
     {
-        GameObject[,] TileTmps = new GameObject[MaxX, MaxY]; // 타일 게임오브젝트 배열
-        
-
-        while(pointQ.Count>0)
-        {
-            Tiles.Poses[pointQ[0].y, pointQ[0].x].high += 5;
-            Tiles.Poses[pointQ[0].y, pointQ[0].x].Env = pointQ[0].Env * 5;
-            Tiles.TileSet[pointQ[0].y, pointQ[0].x] = true;
-  
-            if (pointQ[0].x > 0)
-            {
-                if (UnityEngine.Random.Range(0, 101) < setPercent)
-                {
-                    point p = new point();
-                    p.x = pointQ[0].x - 1;
-                    p.y = pointQ[0].y;
-                    p.Env = pointQ[0].Env;
-                    if(!Tiles.TileSet[p.y, p.x])
-                        pointQ.Add(p);
-                }
-            }
-            if (pointQ[0].y > 0)
-            {
-                if (UnityEngine.Random.Range(0, 101) < setPercent)
-                {
-                    point p = new point();
-                    p.x = pointQ[0].x;
-                    p.y = pointQ[0].y - 1;
-                    p.Env = pointQ[0].Env;
-                    if (!Tiles.TileSet[p.y, p.x])
-                        pointQ.Add(p);
-                }
-            }
-            if (pointQ[0].x < MaxX-1)
-            {
-                if (UnityEngine.Random.Range(0, 101) < setPercent)
-                {
-                    point p = new point();
-                    p.x = pointQ[0].x + 1;
-                    p.y = pointQ[0].y;
-                    p.Env = pointQ[0].Env;
-                    if (!Tiles.TileSet[p.y, p.x])
-                        pointQ.Add(p);
-                }
-            }
-            if (pointQ[0].y < MaxY-1)
-            {
-                if (UnityEngine.Random.Range(0, 101) < setPercent)
-                {
-                    point p = new point();
-                    p.x = pointQ[0].x;
-                    p.y = pointQ[0].y + 1;
-                    p.Env = pointQ[0].Env;
-                    if (!Tiles.TileSet[p.y, p.x])
-                        pointQ.Add(p);
-                }
-            }
-
-            pointQ.RemoveAt(0);
-            Debug.Log(setPercent);
-        }
-        TileObjs = TileTmps;
-    }
-    
-    void MakeMap(ref Tiles tileSet, ref GameObject[,] TileObjs)
-    {
+        int EnvRange;
         for (int i = 0; i < MaxY; i++)
         {
             for (int j = 0; j < MaxX; j++)
             {
+                if (i == 0 || j == 0)
+                {
+                    // 맨 끝 타일은 물타일로 생성
+                    tiles.Poses[j, i].Env = 4;
+                    tiles.Poses[j, i].isDead = false;
+                }
+                // 위치에 따른 가중치를 부여하여 속성을 설정해준다.
+                else
+                {
+                    EnvRange = UnityEngine.Random.Range(0, 101); // 0부터 100 까지 확인
+                    
+                }
 
-                TileObjs[i, j] = Instantiate(high[tileSet.Poses[i,j].Env]);
-
-                TileObjs[i, j].transform.position = right * (firstPosY + i * tileYSize) + up * (firstPosX + j * tileXSize)+ forward * -3;
             }
         }
+    }
+
+    void MapScaling(ref Tiles tiles, int rotationNumber)
+    {
+
+    }
+    
+    void MakeMap(ref Tiles tileSet, ref GameObject[,] TileObjs)
+    {
     }
 }
