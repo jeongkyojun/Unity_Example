@@ -39,30 +39,25 @@ public class GameManager : MonoBehaviour
     // 맵 구성 관련 정보
     [Header("맵 관련 정보")]
     public int GridSize; // 기준이 되는 그리드의 크기
-    public int boundary;  // 그리드의 경계너비 - 너비가 클수록 산이 덜 뭉친다.
     public int border;   // 그리드 테두리의 너비
-    public int GridNum;  // 1행/1열당 그리드의 개수 그리드 개수가 많을수록 산이 많아진다.
 
     // 세포 자동화 방식의 생존 및 사망 숫자
     [Header("셀룰러 오토마타 정보")]
     public int survive;
     public int die;
+    public int tileSurviveNum;
 
     [Header("반복횟수")]
     public int rotateNum;
 
     [Header("랜덤관련")]
-    public int seed;
+    public int seed; // 랜덤 시드넘버
 
-    float setPercent = 40;
-    //static float stopPercent = 10;
-    float changePercent = 1f;
-    public int seedNumber; // 랜덤 시드넘버
-
+    [Header("타일 전체 범위")]
     public int MaxX;
     public int MaxY;
 
-    // 타일관련 정보
+    [Header("타일 기본 사이즈")]
     public float tileXSize = 2;
     public float tileYSize = 2;
 
@@ -84,14 +79,16 @@ public class GameManager : MonoBehaviour
 
     // Start is called before the first frame update
     void Start()
-    {   
-        MaxX = border * 2 + GridSize * GridNum + boundary * (GridNum - 1);
-        MaxY = border * 2 + GridSize * GridNum + boundary * (GridNum - 1);
-        
+    {
+        MaxX = border * 2 + GridSize;
+        MaxY = border * 2 + GridSize;
+
+        TilesArr = new GameObject[MaxY, MaxX];
+
         firstPosX = tileXSize / 2;
         firstPosY = tileYSize / 2;
 
-        Random.seed = seed;
+        UnityEngine.Random.seed = seed;
 
         GenerateMap(ref TE, ref TilesArr); // 맵 생성
         //맵 스케일링
@@ -106,13 +103,6 @@ public class GameManager : MonoBehaviour
 
     void GenerateMap(ref Tiles Tiles, ref GameObject[,] TileObjs)
     {
-        // 타일 번호 지정
-        
-
-        bool[,] isSet = new bool[GridNum, GridNum]; // 그리드 사용여부 확인
-
-        int Xpos, Ypos;
-
         /*
         //UnityEngine.Random.seed = seedNumber; // 수행시 같은 숫자만 나오기때문에 따로 가공과정 필요
         */
@@ -125,7 +115,6 @@ public class GameManager : MonoBehaviour
         
         // 맵 스케일링 시작 ( rotateNum 만큼 반복 )
         MapScaling(ref Tiles, rotateNum);
-
 
     }
 
@@ -153,21 +142,43 @@ public class GameManager : MonoBehaviour
     void RandomMapFilling(ref Tiles tiles)
     {
         int EnvRange;
-        for (int i = 0; i < MaxY; i++)
+        for (int i = border; i < MaxY - border; i++)
         {
-            for (int j = 0; j < MaxX; j++)
+            for (int j = border; j < MaxX - border; j++)
             {
+                tiles.Poses[j, i].isDead = false;
+                tiles.Poses[j, i].life = survive;
+                tiles.Poses[j, i].surviveTime = 0;
                 if (i == 0 || j == 0)
                 {
                     // 맨 끝 타일은 물타일로 생성
                     tiles.Poses[j, i].Env = 4;
-                    tiles.Poses[j, i].isDead = false;
                 }
                 // 위치에 따른 가중치를 부여하여 속성을 설정해준다.
                 else
                 {
                     EnvRange = UnityEngine.Random.Range(0, 101); // 0부터 100 까지 확인
-                    
+                    // 0, 1, 2, 3, 4 각각의 확률은 12.5 , 12.5 , 12.5 , 12.5 ,10 으로 설정, 4번은 수원지이다.
+                    // 북쪽으로 갈수록 1은 0에 가까워지고, 남쪽으로 갈수록 0이 0에 가까워진다.
+                    // 동쪽으로갈수록 2가 0에 가까워지고, 서쪽으로 갈수록 3이 0에 가까워진다.
+                    // 0 = (i * 25/MaxY) , 1 = 25 * (1-(i/MaxY))
+                    int ice = i * 25 / MaxY;
+                    int fire = 25;
+                    int forest = 25+j * 25 / MaxX;
+                    int rock = 50;
+                    int water = 60;
+                    if (EnvRange <= ice)
+                        tiles.Poses[j, i].Env = 0;
+                    else if (EnvRange <= fire)
+                        tiles.Poses[j, i].Env = 2;
+                    else if (EnvRange <= forest)
+                        tiles.Poses[j, i].Env = 1;
+                    else if (EnvRange <= rock)
+                        tiles.Poses[j, i].Env = 3;
+                    else if(EnvRange<=water)
+                        tiles.Poses[j, i].Env = 4;
+                    else
+                        tiles.Poses[j, i].isDead = true;
                 }
 
             }
@@ -176,10 +187,95 @@ public class GameManager : MonoBehaviour
 
     void MapScaling(ref Tiles tiles, int rotationNumber)
     {
+        bool isAllFill = false;
 
+        for(int number = 0;number<rotationNumber;number++)
+        {
+            int Env=-1;
+            isAllFill = true;
+            for(int i=0;i<MaxY;i++)
+            {
+                for(int j=0;j<MaxX;j++)
+                {
+                    if(tiles.Poses[j,i].isDead)
+                    {
+                        isAllFill = false;
+                        if(MapFinding(tiles, ref Env, j, i) > tileSurviveNum)
+                        {
+                            tiles.Poses[j, i].isDead = false;
+                            tiles.Poses[j, i].life = survive;
+                            tiles.Poses[j, i].surviveTime = 0;
+                            tiles.Poses[j, i].Env = Env;
+                        }
+                        else
+                        {
+                            tiles.Poses[j, i].surviveTime++;
+                            if (tiles.Poses[j, i].surviveTime == die)
+                            {
+                                tiles.Poses[j, i].isDead = true;
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
     
+    int MapFinding(Tiles tiles,ref int Env,int x, int y)
+    {
+        int number = 0;
+        int[] Envs = new int[5];
+        int maximum = -1;
+        for(int i=0;i<4;i++)
+        {
+            Envs[i] = 0;
+        }
+        for(int i=-1;i<=1;i++)
+        {
+            for(int j=-1;j<=1;j++)
+            {
+                if(x==0 && i == -1)
+                {
+                    continue;
+                }
+                else if(y==0 && j==-1)
+                {
+                    continue;
+                }
+                else if(x == MaxX - 1 && i==1)
+                {
+                    continue;
+                }
+                else if (y == MaxY - 1 && j == 1)
+                {
+                    continue;
+                }
+                else if (!tiles.Poses[x+i,y+j].isDead /*&& tiles.Poses[x + i, y + j].surviveTime == survive*/) // 살아있는 셀인 경우 인식
+                {
+                    number++;
+                    Envs[tiles.Poses[x + i, y + j].Env]++;
+                    if (Envs[tiles.Poses[x + i, y + j].Env] > maximum)
+                    {
+                        maximum = Envs[tiles.Poses[x + i, y + j].Env];
+                        Env = tiles.Poses[x + i, y + j].Env;
+                    }
+                }
+            }
+        }
+        return number;
+    }
+
     void MakeMap(ref Tiles tileSet, ref GameObject[,] TileObjs)
     {
+        for(int i=0;i<MaxY;i++)
+        {
+            for(int j=0;j<MaxX;j++)
+            {
+                Debug.Log(tileSet.Poses[j, i].Env);
+                Debug.Log(tileSet.Poses[j, i].surviveTime);
+                TileObjs[j, i] = Instantiate(high[tileSet.Poses[j, i].Env * 5 + (tileSet.Poses[j, i].surviveTime%5)]);
+                TileObjs[j, i].transform.position = right * (j * tileXSize + firstPosX) + up * (i * tileYSize + firstPosY);
+            }
+        }
     }
 }
