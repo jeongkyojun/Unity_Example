@@ -103,9 +103,6 @@ public class GameManager : MonoBehaviour
 
     void GenerateMap(ref Tiles Tiles, ref GameObject[,] TileObjs)
     {
-        /*
-        //UnityEngine.Random.seed = seedNumber; // 수행시 같은 숫자만 나오기때문에 따로 가공과정 필요
-        */
 
         // 맵 초기화
         Tiles = MapInit();
@@ -142,14 +139,14 @@ public class GameManager : MonoBehaviour
     void RandomMapFilling(ref Tiles tiles)
     {
         int EnvRange;
-        for (int i = border; i < MaxY - border; i++)
+        for (int i = 0; i < MaxY; i++)
         {
-            for (int j = border; j < MaxX - border; j++)
+            for (int j = 0; j < MaxX; j++)
             {
                 tiles.Poses[j, i].isDead = false;
                 tiles.Poses[j, i].life = survive;
                 tiles.Poses[j, i].surviveTime = 0;
-                if (i == 0 || j == 0)
+                if (i < 10 || j < 10)
                 {
                     // 맨 끝 타일은 물타일로 생성
                     tiles.Poses[j, i].Env = 4;
@@ -158,10 +155,13 @@ public class GameManager : MonoBehaviour
                 else
                 {
                     EnvRange = UnityEngine.Random.Range(0, 101); // 0부터 100 까지 확인
+                    //Debug.Log(EnvRange);
                     // 0, 1, 2, 3, 4 각각의 확률은 12.5 , 12.5 , 12.5 , 12.5 ,10 으로 설정, 4번은 수원지이다.
                     // 북쪽으로 갈수록 1은 0에 가까워지고, 남쪽으로 갈수록 0이 0에 가까워진다.
                     // 동쪽으로갈수록 2가 0에 가까워지고, 서쪽으로 갈수록 3이 0에 가까워진다.
                     // 0 = (i * 25/MaxY) , 1 = 25 * (1-(i/MaxY))
+
+                    /*
                     int ice = i * 25 / MaxY;
                     int fire = 25;
                     int forest = 25+j * 25 / MaxX;
@@ -179,6 +179,16 @@ public class GameManager : MonoBehaviour
                         tiles.Poses[j, i].Env = 4;
                     else
                         tiles.Poses[j, i].isDead = true;
+                    */
+                    if(EnvRange>60)
+                    {
+                        tiles.Poses[j, i].Env = 4;
+                    }
+                    else
+                    {
+                        tiles.Poses[j, i].Env = 3;
+                    }
+
                 }
 
             }
@@ -197,6 +207,15 @@ public class GameManager : MonoBehaviour
             {
                 for(int j=0;j<MaxX;j++)
                 {
+                    if (MapFinding(tiles, ref Env, j, i) > tileSurviveNum)
+                    {
+                        Debug.Log("increase!");
+                        tiles.Poses[j, i].isDead = false;
+                        tiles.Poses[j, i].life = survive;
+                        tiles.Poses[j, i].surviveTime = 0;
+                        tiles.Poses[j, i].Env = 3;
+                    }
+                    /*
                     if(tiles.Poses[j,i].isDead)
                     {
                         isAllFill = false;
@@ -216,6 +235,7 @@ public class GameManager : MonoBehaviour
                             }
                         }
                     }
+                    */
                 }
             }
         }
@@ -250,8 +270,11 @@ public class GameManager : MonoBehaviour
                 {
                     continue;
                 }
-                else if (!tiles.Poses[x+i,y+j].isDead /*&& tiles.Poses[x + i, y + j].surviveTime == survive*/) // 살아있는 셀인 경우 인식
+                //else if (!tiles.Poses[x+i,y+j].isDead /*&& tiles.Poses[x + i, y + j].surviveTime == survive*/) // 살아있는 셀인 경우 인식
+                else if (tiles.Poses[x+i,y+j].Env == 3)
                 {
+                    number++;
+                    /*
                     number++;
                     Envs[tiles.Poses[x + i, y + j].Env]++;
                     if (Envs[tiles.Poses[x + i, y + j].Env] > maximum)
@@ -259,6 +282,7 @@ public class GameManager : MonoBehaviour
                         maximum = Envs[tiles.Poses[x + i, y + j].Env];
                         Env = tiles.Poses[x + i, y + j].Env;
                     }
+                    */
                 }
             }
         }
@@ -271,8 +295,6 @@ public class GameManager : MonoBehaviour
         {
             for(int j=0;j<MaxX;j++)
             {
-                Debug.Log(tileSet.Poses[j, i].Env);
-                Debug.Log(tileSet.Poses[j, i].surviveTime);
                 TileObjs[j, i] = Instantiate(high[tileSet.Poses[j, i].Env * 5 + (tileSet.Poses[j, i].surviveTime%5)]);
                 TileObjs[j, i].transform.position = right * (j * tileXSize + firstPosX) + up * (i * tileYSize + firstPosY);
             }

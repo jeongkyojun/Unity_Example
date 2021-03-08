@@ -395,9 +395,9 @@ MonoBehaviour:
   border: 20
   survive: 2
   die: 5
-  tileSurviveNum: 5
-  rotateNum: 200
-  seed: 15
+  tileSurviveNum: 4
+  rotateNum: 3
+  seed: 1578320068
   MaxX: 0
   MaxY: 0
   tileXSize: 2
