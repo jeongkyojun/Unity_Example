@@ -396,8 +396,9 @@ MonoBehaviour:
   survive: 2
   die: 5
   tileSurviveNum: 4
-  rotateNum: 3
-  seed: 1578320068
+  randomfillPercent: 55
+  rotateNum: 100
+  seed: 0
   MaxX: 0
   MaxY: 0
   tileXSize: 2

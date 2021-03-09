@@ -46,6 +46,9 @@ public class GameManager : MonoBehaviour
     public int survive;
     public int die;
     public int tileSurviveNum;
+    [Range(0, 100)]
+    public int randomfillPercent;
+
 
     [Header("반복횟수")]
     public int rotateNum;
@@ -82,6 +85,8 @@ public class GameManager : MonoBehaviour
     {
         MaxX = border * 2 + GridSize;
         MaxY = border * 2 + GridSize;
+
+        seed = UnityEngine.Random.Range(00000000, 100000000);
 
         TilesArr = new GameObject[MaxY, MaxX];
 
@@ -120,8 +125,8 @@ public class GameManager : MonoBehaviour
         Tiles tileTmp = new Tiles();
         tileTmp.TileNumber = new int[MaxY, MaxX];
         tileTmp.TileSet = new bool[MaxY, MaxX];
-
         tileTmp.Poses = new Position[MaxX, MaxY]; // 타일 정보 배열
+
         // 기본 타일 초기화 - 무에서 시작한다.
         for (int i = 0; i < MaxY; i++)
         {
@@ -129,7 +134,6 @@ public class GameManager : MonoBehaviour
             {
                 // 모든 타일을 죽은 상태의 물타일로 변환
                 tileTmp.Poses[j, i].Env = 4;
-                tileTmp.Poses[j, i].isDead = true;
             }
         }
 
@@ -146,7 +150,7 @@ public class GameManager : MonoBehaviour
                 tiles.Poses[j, i].isDead = false;
                 tiles.Poses[j, i].life = survive;
                 tiles.Poses[j, i].surviveTime = 0;
-                if (i < 10 || j < 10)
+                if (i == 0 || j == 0||i==MaxY-1||j==MaxX-1)
                 {
                     // 맨 끝 타일은 물타일로 생성
                     tiles.Poses[j, i].Env = 4;
@@ -180,13 +184,13 @@ public class GameManager : MonoBehaviour
                     else
                         tiles.Poses[j, i].isDead = true;
                     */
-                    if(EnvRange>60)
+                    if(EnvRange>randomfillPercent)
                     {
                         tiles.Poses[j, i].Env = 4;
                     }
                     else
                     {
-                        tiles.Poses[j, i].Env = 3;
+                        tiles.Poses[j, i].Env = 1;
                     }
 
                 }
@@ -197,12 +201,10 @@ public class GameManager : MonoBehaviour
 
     void MapScaling(ref Tiles tiles, int rotationNumber)
     {
-        bool isAllFill = false;
-
+        // 셀룰러 오토마타를 이용한 맵 다듬기 수행 ( 지정횟수 = rotationNumber만큼 수행 )
         for(int number = 0;number<rotationNumber;number++)
         {
             int Env=-1;
-            isAllFill = true;
             for(int i=0;i<MaxY;i++)
             {
                 for(int j=0;j<MaxX;j++)
@@ -213,29 +215,12 @@ public class GameManager : MonoBehaviour
                         tiles.Poses[j, i].isDead = false;
                         tiles.Poses[j, i].life = survive;
                         tiles.Poses[j, i].surviveTime = 0;
-                        tiles.Poses[j, i].Env = 3;
+                        tiles.Poses[j, i].Env = 1;
                     }
-                    /*
-                    if(tiles.Poses[j,i].isDead)
+                    else
                     {
-                        isAllFill = false;
-                        if(MapFinding(tiles, ref Env, j, i) > tileSurviveNum)
-                        {
-                            tiles.Poses[j, i].isDead = false;
-                            tiles.Poses[j, i].life = survive;
-                            tiles.Poses[j, i].surviveTime = 0;
-                            tiles.Poses[j, i].Env = Env;
-                        }
-                        else
-                        {
-                            tiles.Poses[j, i].surviveTime++;
-                            if (tiles.Poses[j, i].surviveTime == die)
-                            {
-                                tiles.Poses[j, i].isDead = true;
-                            }
-                        }
+                        tiles.Poses[j, i].Env = 4;
                     }
-                    */
                 }
             }
         }
@@ -244,12 +229,6 @@ public class GameManager : MonoBehaviour
     int MapFinding(Tiles tiles,ref int Env,int x, int y)
     {
         int number = 0;
-        int[] Envs = new int[5];
-        int maximum = -1;
-        for(int i=0;i<4;i++)
-        {
-            Envs[i] = 0;
-        }
         for(int i=-1;i<=1;i++)
         {
             for(int j=-1;j<=1;j++)
@@ -270,19 +249,9 @@ public class GameManager : MonoBehaviour
                 {
                     continue;
                 }
-                //else if (!tiles.Poses[x+i,y+j].isDead /*&& tiles.Poses[x + i, y + j].surviveTime == survive*/) // 살아있는 셀인 경우 인식
-                else if (tiles.Poses[x+i,y+j].Env == 3)
+                else if (tiles.Poses[x+i,y+j].Env != 4)
                 {
                     number++;
-                    /*
-                    number++;
-                    Envs[tiles.Poses[x + i, y + j].Env]++;
-                    if (Envs[tiles.Poses[x + i, y + j].Env] > maximum)
-                    {
-                        maximum = Envs[tiles.Poses[x + i, y + j].Env];
-                        Env = tiles.Poses[x + i, y + j].Env;
-                    }
-                    */
                 }
             }
         }
