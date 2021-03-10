@@ -43,8 +43,6 @@ public class GameManager : MonoBehaviour
 
     // 세포 자동화 방식의 생존 및 사망 숫자
     [Header("셀룰러 오토마타 정보")]
-    public int survive;
-    public int die;
     public int tileSurviveNum;
     [Range(0, 100)]
     public int randomfillPercent;
@@ -93,10 +91,11 @@ public class GameManager : MonoBehaviour
         firstPosX = tileXSize / 2;
         firstPosY = tileYSize / 2;
 
+        Debug.Log("seed : " + seed.ToString());
         UnityEngine.Random.seed = seed;
 
-        GenerateMap(ref TE, ref TilesArr); // 맵 생성
-        //맵 스케일링
+        GenerateMap(ref TE); // 지형 생성 및 스케일링
+
         MakeMap(ref TE,ref TilesArr);
     }
 
@@ -106,7 +105,7 @@ public class GameManager : MonoBehaviour
         
     }
 
-    void GenerateMap(ref Tiles Tiles, ref GameObject[,] TileObjs)
+    void GenerateMap(ref Tiles Tiles)
     {
 
         // 맵 초기화
@@ -114,7 +113,10 @@ public class GameManager : MonoBehaviour
 
         // 무작위 맵 채우기
         RandomMapFilling(ref Tiles);
-        
+
+        // 맵 속성 변환
+        MakeEnv(ref Tiles);
+
         // 맵 스케일링 시작 ( rotateNum 만큼 반복 )
         MapScaling(ref Tiles, rotateNum);
 
@@ -134,6 +136,8 @@ public class GameManager : MonoBehaviour
             {
                 // 모든 타일을 죽은 상태의 물타일로 변환
                 tileTmp.Poses[j, i].Env = 4;
+                tileTmp.Poses[j, i].x = j;
+                tileTmp.Poses[j, i].y = i;
             }
         }
 
@@ -147,8 +151,7 @@ public class GameManager : MonoBehaviour
         {
             for (int j = 0; j < MaxX; j++)
             {
-                tiles.Poses[j, i].isDead = false;
-                tiles.Poses[j, i].life = survive;
+                tiles.Poses[j, i].isDead = false;               
                 tiles.Poses[j, i].surviveTime = 0;
                 if (i == 0 || j == 0||i==MaxY-1||j==MaxX-1)
                 {
@@ -159,31 +162,7 @@ public class GameManager : MonoBehaviour
                 else
                 {
                     EnvRange = UnityEngine.Random.Range(0, 101); // 0부터 100 까지 확인
-                    //Debug.Log(EnvRange);
-                    // 0, 1, 2, 3, 4 각각의 확률은 12.5 , 12.5 , 12.5 , 12.5 ,10 으로 설정, 4번은 수원지이다.
-                    // 북쪽으로 갈수록 1은 0에 가까워지고, 남쪽으로 갈수록 0이 0에 가까워진다.
-                    // 동쪽으로갈수록 2가 0에 가까워지고, 서쪽으로 갈수록 3이 0에 가까워진다.
-                    // 0 = (i * 25/MaxY) , 1 = 25 * (1-(i/MaxY))
-
-                    /*
-                    int ice = i * 25 / MaxY;
-                    int fire = 25;
-                    int forest = 25+j * 25 / MaxX;
-                    int rock = 50;
-                    int water = 60;
-                    if (EnvRange <= ice)
-                        tiles.Poses[j, i].Env = 0;
-                    else if (EnvRange <= fire)
-                        tiles.Poses[j, i].Env = 2;
-                    else if (EnvRange <= forest)
-                        tiles.Poses[j, i].Env = 1;
-                    else if (EnvRange <= rock)
-                        tiles.Poses[j, i].Env = 3;
-                    else if(EnvRange<=water)
-                        tiles.Poses[j, i].Env = 4;
-                    else
-                        tiles.Poses[j, i].isDead = true;
-                    */
+                   
                     if(EnvRange>randomfillPercent)
                     {
                         tiles.Poses[j, i].Env = 4;
@@ -211,9 +190,7 @@ public class GameManager : MonoBehaviour
                 {
                     if (MapFinding(tiles, ref Env, j, i) > tileSurviveNum)
                     {
-                        Debug.Log("increase!");
                         tiles.Poses[j, i].isDead = false;
-                        tiles.Poses[j, i].life = survive;
                         tiles.Poses[j, i].surviveTime = 0;
                         tiles.Poses[j, i].Env = 1;
                     }
@@ -258,13 +235,107 @@ public class GameManager : MonoBehaviour
         return number;
     }
 
+    void MakeEnv(ref Tiles tiles)
+    {
+        // 호수를 찾는다.
+        FindLake(ref tiles);
+
+        // 강을 지정한다.
+        MakeRiver(ref tiles);
+
+        ChangeTile(ref tiles);
+    }
+
+    void FindLake (ref Tiles tiles)
+    {
+        // 호수 탐색
+        for(int i=0;i<MaxX;i++)
+        {
+            for(int j=0;j<MaxY;j++)
+            {
+                if(i==0)
+                {
+
+                }
+            }
+        }
+    }
+
+    void MakeRiver(ref Tiles tiles)
+    {
+        // 큰 흐름의 방향을 지정한다.
+        // 이동하는 과정을 만든다.
+        // 일정 확률로 갈라진다.
+        //관통하면 강이 만들어지게 되는것이다.
+        int startX;
+        int startY;
+
+        int HorizonMovePercent;
+        int VerticalMovePercent;
+
+        int separateNum = 0;
+        int sepatatePercent = 0; // 땅에 닿을수록 점점 증가, 그 뒤, 분리될때마다 크게 감소
+        int[] separatePoint = new int[MaxX*2]; // 3의 나머지를 구할때 0 : x, 1 : y, 2 : 방향
+
+        int startDir = UnityEngine.Random.Range(0, 8); // 0,1 : 좌상 , 2,3 : 우상 , 4,5 : 좌하 , 6,7 : 우하
+        Debug.Log("Direction : " + startDir);
+
+        // 짝수면 X는 0, Y는 1이 되어야 한다. 
+        startX = UnityEngine.Random.Range((int)(MaxX * 0.3f * (startDir % 4 > 1 ? 2 : 0) * ((startDir + 1)% 2)), (int)(MaxX * 0.3f *((startDir % 4 > 1 ? 2 : 0)+1) * ((startDir+1)%2))); // 좌측 : 0 , 우측 : 2
+        startY = UnityEngine.Random.Range((int)(MaxX * 0.3f * (startDir % 4 > 1 ? 2 : 0) * (startDir % 2)), (int)(MaxX * 0.3f * ((startDir % 4 > 1 ? 2 : 0) + 1) * (startDir % 2))); // 좌측 : 0 , 우측 : 2
+
+        int endDir = UnityEngine.Random.Range(0, 3); // 75:25 상향, 50:50 대각선 , 25:75 평행
+        HorizonMovePercent = 75 - (25 * endDir);
+        VerticalMovePercent = 25 + (25 * endDir);
+
+        Debug.Log("x : " + startX + " , y : "+startY);
+        Debug.Log(HorizonMovePercent + " , " + VerticalMovePercent);
+
+        int updown = (startDir / 4 < 1 ? -1 : 1); // up이면 +1, down이면 -1 "상"이 들어가면 down, "하"가 들어가면 up
+        int leftright = (startDir % 4 > 1 ? -1 : 1); // left면 -1, right면 +1 "좌"가 들어가면 right, "우"가 들어가면 left -> 0145 & 2367
+
+        while (true)
+        {
+            if(UnityEngine.Random.Range(0,101)>HorizonMovePercent)
+            {
+
+            }
+
+            if(startX==0||startX==MaxX-1 || startY == 0 ||startY==MaxY-1)
+            {
+                break;
+            }
+        }
+    }
+
+    void ChangeTile(ref Tiles tiles)
+    {
+        int[] EnvNum = new int[3];
+        for(int i=0;i<3;i++)
+        {
+            EnvNum[i] = UnityEngine.Random.Range(0, 4);
+            for (int j = 0; j < i; j++)
+            {
+                if (EnvNum[i] == EnvNum[j])
+                {
+                    i--;
+                    break;
+                }
+            }
+        }
+
+        // 각 숫자는 각자 좌상, 우상, 좌하, 우하를 나타낸다.
+
+        
+    }
+
     void MakeMap(ref Tiles tileSet, ref GameObject[,] TileObjs)
     {
         for(int i=0;i<MaxY;i++)
         {
             for(int j=0;j<MaxX;j++)
             {
-                TileObjs[j, i] = Instantiate(high[tileSet.Poses[j, i].Env * 5 + (tileSet.Poses[j, i].surviveTime%5)]);
+                TileObjs[j, i] = Instantiate(high[tileSet.Poses[j, i].Env * 5]);
                 TileObjs[j, i].transform.position = right * (j * tileXSize + firstPosX) + up * (i * tileYSize + firstPosY);
             }
         }
