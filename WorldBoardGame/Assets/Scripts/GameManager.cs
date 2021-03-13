@@ -18,13 +18,12 @@ public struct Position
 {
     public int x,y; // 가로, 세로
 
-    public int life; // 세포 자동화의 수명
-    public int surviveTime; // 생존 주기 (0 부터 시작하여 점점 늘어난다.)
-
-    public bool isDead;// 칸이 죽은 셀인지 아닌지를 확인하는 변수 ( true면 사망, false면 생존 )
-
-    public int water_info; // 0 이면 물, 1이면 용암
-    public int Env; // 환경 설정 0,1,2,3,4 로 구성, 4는 물 
+    public bool isGo; // 진입 가능 여부 확인
+    
+    public int water_info; // 0 이면 물, 1이면 용암, 2는 바다, 3은 땅
+    
+    public int TileEnv; // 환경 설정 0,1,2,3,4 로 구성, 4는 물
+    public int Env; // 지형 ( 0:산 , 1+Tileenv : 해당 속성에 맞는 나무 숫자, 이후 아직 안정해짐
 };
 
 public struct point
@@ -59,6 +58,7 @@ public class GameManager : MonoBehaviour
     [Header("반복횟수")]
     public int rotateNum;
     public int EnvNum;
+    public int InputQueNumber;
     [Header("랜덤관련")]
     public int seed; // 랜덤 시드넘버
 
@@ -74,7 +74,10 @@ public class GameManager : MonoBehaviour
     float firstPosY; // 첫 위치 지정2
 
     // 등고선 관련
+    [Header("지형 프리팹")]
     public GameObject[] high;
+    [Header("환경 프리팹")]
+    public GameObject[] env;
 
     // 변수
     public Tiles TE = new Tiles();
@@ -100,7 +103,7 @@ public class GameManager : MonoBehaviour
         firstPosY = tileYSize / 2;
 
         Debug.Log("seed : " + seed.ToString());
-        UnityEngine.Random.seed = seed;
+        UnityEngine.Random.InitState(seed);
         TE.MapSeed = seed;
 
         GenerateMap(ref TE); // 지형 생성 및 스케일링
@@ -143,7 +146,7 @@ public class GameManager : MonoBehaviour
             for (int j = 0; j < MaxX; j++)
             {
                 // 모든 타일을 죽은 상태의 물타일로 변환
-                tileTmp.Poses[j, i].Env = 4;
+                tileTmp.Poses[j, i].TileEnv = 4;
                 tileTmp.Poses[j, i].x = j;
                 tileTmp.Poses[j, i].y = i;
             }
@@ -159,12 +162,10 @@ public class GameManager : MonoBehaviour
         {
             for (int j = 0; j < MaxX; j++)
             {
-                tiles.Poses[j, i].isDead = false;               
-                tiles.Poses[j, i].surviveTime = 0;
                 if (i == 0 || j == 0||i==MaxY-1||j==MaxX-1)
                 {
                     // 맨 끝 타일은 물타일로 생성
-                    tiles.Poses[j, i].Env = 4;
+                    tiles.Poses[j, i].TileEnv = 4;
                 }
                 // 위치에 따른 가중치를 부여하여 속성을 설정해준다.
                 else
@@ -173,11 +174,11 @@ public class GameManager : MonoBehaviour
                    
                     if(EnvRange>randomfillPercent)
                     {
-                        tiles.Poses[j, i].Env = 4;
+                        tiles.Poses[j, i].TileEnv = 4;
                     }
                     else
                     {
-                        tiles.Poses[j, i].Env = -1;
+                        tiles.Poses[j, i].TileEnv = -1;
                     }
 
                 }
@@ -198,13 +199,11 @@ public class GameManager : MonoBehaviour
                 {
                     if (MapFinding(tiles, ref Env, j, i) > TileSurviveNum)
                     {
-                        tiles.Poses[j, i].isDead = false;
-                        tiles.Poses[j, i].surviveTime = 0;
-                        tiles.Poses[j, i].Env = -1;
+                        tiles.Poses[j, i].TileEnv = -1;
                     }
                     else
                     {
-                        tiles.Poses[j, i].Env = 4;
+                        tiles.Poses[j, i].TileEnv = 4;
                     }
                 }
             }
@@ -234,7 +233,7 @@ public class GameManager : MonoBehaviour
                 {
                     continue;
                 }
-                else if (tiles.Poses[x+i,y+j].Env != 4)
+                else if (tiles.Poses[x+i,y+j].TileEnv != 4)
                 {
                     number++;
                 }
@@ -349,18 +348,22 @@ public class GameManager : MonoBehaviour
         }
 
         // 각 숫자는 각자 좌상, 우상, 좌하, 우하를 나타낸다.
-        for(int i=0;i<4;i++)
+
+        for (int rot = 0; rot < InputQueNumber; rot++)
         {
-            int X = UnityEngine.Random.Range(0, MaxX);
-            int Y = UnityEngine.Random.Range(0, MaxY);
-            if(tiles.Poses[X,Y].Env !=-1) // 해당 타일이 다른 속성 타일이거나 물타일인경우 되돌린다.
+            for (int i = 0; i < 4; i++)
             {
-                i--;
-            }
-            else // 아닌 경우 타일을 집어넣는다.
-            {
-                tiles.Poses[X, Y].Env = EnvNum[i];
-                MapQ[tail++] = tiles.Poses[X,Y];
+                int X = UnityEngine.Random.Range(0, MaxX);
+                int Y = UnityEngine.Random.Range(0, MaxY);
+                if (tiles.Poses[X, Y].TileEnv != -1) // 해당 타일이 다른 속성 타일이거나 물타일인경우 되돌린다.
+                {
+                    i--;
+                }
+                else // 아닌 경우 타일을 집어넣는다.
+                {
+                    tiles.Poses[X, Y].TileEnv = EnvNum[i];
+                    MapQ[tail++] = tiles.Poses[X, Y];
+                }
             }
         }
         int EnvColor;
@@ -372,9 +375,9 @@ public class GameManager : MonoBehaviour
             isStopSet = true;
             Qx = MapQ[(++head)%End].x; // 범위 초과를 막기위한 방법 -> 나머지를 출력하여 초과하면 0으로 돌아간다.
             Qy = MapQ[head%End].y;
-            EnvColor = tiles.Poses[Qx,Qy].Env;
+            EnvColor = tiles.Poses[Qx,Qy].TileEnv;
 
-            if (Qx!=0 && tiles.Poses[Qx-1, Qy].Env==-1)
+            if (Qx!=0 && tiles.Poses[Qx-1, Qy].TileEnv==-1)
             {
                 if (UnityEngine.Random.Range(0, 101) > RandomOutPercent) // 일정 확률로 해당 범위를 이동하지 않고 정체한다.
                 {
@@ -383,12 +386,12 @@ public class GameManager : MonoBehaviour
                 }
                 else
                 {
-                    tiles.Poses[Qx - 1, Qy].Env = EnvColor;
+                    tiles.Poses[Qx - 1, Qy].TileEnv = EnvColor;
                     MapQ[(tail++) % End] = tiles.Poses[Qx - 1, Qy];
                 }
             }
 
-            if (Qy != 0 && tiles.Poses[Qx, Qy-1].Env == -1)
+            if (Qy != 0 && tiles.Poses[Qx, Qy-1].TileEnv == -1)
             {
                 if (UnityEngine.Random.Range(0, 101) > RandomOutPercent)
                 {
@@ -397,12 +400,12 @@ public class GameManager : MonoBehaviour
                 }
                 else
                 {
-                    tiles.Poses[Qx, Qy - 1].Env = EnvColor;
+                    tiles.Poses[Qx, Qy - 1].TileEnv = EnvColor;
                     MapQ[(tail++) % End] = tiles.Poses[Qx, Qy - 1];
                 }
             }
 
-            if (Qx <MaxX-1 && tiles.Poses[Qx + 1, Qy].Env == -1)
+            if (Qx <MaxX-1 && tiles.Poses[Qx + 1, Qy].TileEnv == -1)
             {
                 if (UnityEngine.Random.Range(0, 101) > RandomOutPercent)
                 {
@@ -411,12 +414,12 @@ public class GameManager : MonoBehaviour
                 }
                 else
                 {
-                    tiles.Poses[Qx + 1, Qy].Env = EnvColor;
+                    tiles.Poses[Qx + 1, Qy].TileEnv = EnvColor;
                     MapQ[(tail++) % End] = tiles.Poses[Qx + 1, Qy];
                 }
             }
 
-            if (Qy < MaxY-1 && tiles.Poses[Qx, Qy + 1].Env == -1)
+            if (Qy < MaxY-1 && tiles.Poses[Qx, Qy + 1].TileEnv == -1)
             {
                 if (UnityEngine.Random.Range(0, 101) > RandomOutPercent)
                 {
@@ -425,7 +428,7 @@ public class GameManager : MonoBehaviour
                 }
                 else
                 {
-                    tiles.Poses[Qx, Qy + 1].Env = EnvColor;
+                    tiles.Poses[Qx, Qy + 1].TileEnv = EnvColor;
                     MapQ[(tail++) % End] = tiles.Poses[Qx, Qy + 1];
                 }
             }
@@ -434,6 +437,10 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    void MakeForest(ref Tiles tileSet)
+    {
+
+    }
 
     void MakeMap(ref Tiles tileSet, ref GameObject[,] TileObjs)
     {
@@ -441,17 +448,17 @@ public class GameManager : MonoBehaviour
         {
             for(int j=0;j<MaxX;j++)
             {
-                Debug.Log(tileSet.Poses[j, i].Env * 5);
+                Debug.Log(tileSet.Poses[j, i].TileEnv * 5);
                 try
                 {
-                    TileObjs[j, i] = Instantiate(high[tileSet.Poses[j, i].Env * 5]);
+                    TileObjs[j, i] = Instantiate(high[tileSet.Poses[j, i].TileEnv * 5]);
                     TileObjs[j, i].transform.position = right * (j * tileXSize + firstPosX) + up * (i * tileYSize + firstPosY);
                 }
                 catch // 섬인경우 여기서 정해진다.
                 {
-                    tileSet.Poses[j, i].Env = 1; // 숲으로 처리
+                    tileSet.Poses[j, i].TileEnv = 1; // 숲으로 처리
 
-                    TileObjs[j, i] = Instantiate(high[tileSet.Poses[j, i].Env * 5]);
+                    TileObjs[j, i] = Instantiate(high[tileSet.Poses[j, i].TileEnv * 5]);
                     TileObjs[j, i].transform.position = right * (j * tileXSize + firstPosX) + up * (i * tileYSize + firstPosY);
                 }
             }
