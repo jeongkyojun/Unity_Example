@@ -4,6 +4,7 @@ using UnityEngine;
 
 public struct Tiles
 {
+    public int MapSeed;
     public Position[,] Poses;
     public int[,] TileNumber; // 타일마다의 대륙 번호
     public bool[,] TileSet; //타일 생성 여부
@@ -43,14 +44,21 @@ public class GameManager : MonoBehaviour
 
     // 세포 자동화 방식의 생존 및 사망 숫자
     [Header("셀룰러 오토마타 정보")]
-    public int tileSurviveNum;
+    [Tooltip("맵 스케일링 당시 사용되는 숫자, 주위 블럭 중 땅의 개수가 이 숫자를 초과하여야 땅이 된다.")]
+    public int TileSurviveNum;
+    [Tooltip("초기 땅과 물을 구분할때 사용되는 확률")]
     [Range(0, 100)]
     public int randomfillPercent;
-
+    [Tooltip("속성이 퍼져나갈때, 멈출지 퍼질지를 결정하는 확률")]
+    [Range(0,100)]
+    public int RandomOutPercent;
+    [Tooltip("강물이 퍼져나갈때, 갈라질지 진행할지를 결정하는 확률")]
+    [Range(0, 100)]
+    public int RandomSeparatePercent;
 
     [Header("반복횟수")]
     public int rotateNum;
-
+    public int EnvNum;
     [Header("랜덤관련")]
     public int seed; // 랜덤 시드넘버
 
@@ -93,6 +101,7 @@ public class GameManager : MonoBehaviour
 
         Debug.Log("seed : " + seed.ToString());
         UnityEngine.Random.seed = seed;
+        TE.MapSeed = seed;
 
         GenerateMap(ref TE); // 지형 생성 및 스케일링
 
@@ -114,12 +123,11 @@ public class GameManager : MonoBehaviour
         // 무작위 맵 채우기
         RandomMapFilling(ref Tiles);
 
-        // 맵 속성 변환
-        MakeEnv(ref Tiles);
-
         // 맵 스케일링 시작 ( rotateNum 만큼 반복 )
         MapScaling(ref Tiles, rotateNum);
 
+        // 맵 속성 변환
+        MakeEnv(ref Tiles);
     }
 
     Tiles MapInit()
@@ -169,7 +177,7 @@ public class GameManager : MonoBehaviour
                     }
                     else
                     {
-                        tiles.Poses[j, i].Env = 1;
+                        tiles.Poses[j, i].Env = -1;
                     }
 
                 }
@@ -188,11 +196,11 @@ public class GameManager : MonoBehaviour
             {
                 for(int j=0;j<MaxX;j++)
                 {
-                    if (MapFinding(tiles, ref Env, j, i) > tileSurviveNum)
+                    if (MapFinding(tiles, ref Env, j, i) > TileSurviveNum)
                     {
                         tiles.Poses[j, i].isDead = false;
                         tiles.Poses[j, i].surviveTime = 0;
-                        tiles.Poses[j, i].Env = 1;
+                        tiles.Poses[j, i].Env = -1;
                     }
                     else
                     {
@@ -238,12 +246,13 @@ public class GameManager : MonoBehaviour
     void MakeEnv(ref Tiles tiles)
     {
         // 호수를 찾는다.
-        FindLake(ref tiles);
+        //FindLake(ref tiles);
 
         // 강을 지정한다.
-        MakeRiver(ref tiles);
+        //MakeRiver(ref tiles);
 
         ChangeTile(ref tiles);
+        Debug.Log("after Change");
     }
 
     void FindLake (ref Tiles tiles)
@@ -269,22 +278,30 @@ public class GameManager : MonoBehaviour
         //관통하면 강이 만들어지게 되는것이다.
         int startX;
         int startY;
+        int endX;
+        int endY;
 
         int HorizonMovePercent;
         int VerticalMovePercent;
 
         int separateNum = 0;
-        int sepatatePercent = 0; // 땅에 닿을수록 점점 증가, 그 뒤, 분리될때마다 크게 감소
-        int[] separatePoint = new int[MaxX*2]; // 3의 나머지를 구할때 0 : x, 1 : y, 2 : 방향
 
         int startDir = UnityEngine.Random.Range(0, 8); // 0,1 : 좌상 , 2,3 : 우상 , 4,5 : 좌하 , 6,7 : 우하
         Debug.Log("Direction : " + startDir);
 
+
+        //------------------------------------------<방향 정하는 과정>-------------------------------------------------------
+
+        //==================================================================================================================
         // 짝수면 X는 0, Y는 1이 되어야 한다. 
         startX = UnityEngine.Random.Range((int)(MaxX * 0.3f * (startDir % 4 > 1 ? 2 : 0) * ((startDir + 1)% 2)), (int)(MaxX * 0.3f *((startDir % 4 > 1 ? 2 : 0)+1) * ((startDir+1)%2))); // 좌측 : 0 , 우측 : 2
         startY = UnityEngine.Random.Range((int)(MaxX * 0.3f * (startDir % 4 > 1 ? 2 : 0) * (startDir % 2)), (int)(MaxX * 0.3f * ((startDir % 4 > 1 ? 2 : 0) + 1) * (startDir % 2))); // 좌측 : 0 , 우측 : 2
 
         int endDir = UnityEngine.Random.Range(0, 3); // 75:25 상향, 50:50 대각선 , 25:75 평행
+
+        endX = MaxX - 1 - (startX > MaxX / 2 ? MaxX - 1 : 0);
+        endY = MaxY - 1 - (startY > MaxY / 2 ? MaxY - 1 : 0);
+
         HorizonMovePercent = 75 - (25 * endDir);
         VerticalMovePercent = 25 + (25 * endDir);
 
@@ -293,7 +310,10 @@ public class GameManager : MonoBehaviour
 
         int updown = (startDir / 4 < 1 ? -1 : 1); // up이면 +1, down이면 -1 "상"이 들어가면 down, "하"가 들어가면 up
         int leftright = (startDir % 4 > 1 ? -1 : 1); // left면 -1, right면 +1 "좌"가 들어가면 right, "우"가 들어가면 left -> 0145 & 2367
+        //===================================================================================================================
 
+        //-------------------------------------------------------------------------------------------------------------------
+        
         while (true)
         {
             if(UnityEngine.Random.Range(0,101)>HorizonMovePercent)
@@ -310,8 +330,12 @@ public class GameManager : MonoBehaviour
 
     void ChangeTile(ref Tiles tiles)
     {
-        int[] EnvNum = new int[3];
-        for(int i=0;i<3;i++)
+        int[] EnvNum = new int[4];
+        Position[] MapQ = new Position[MaxX * MaxY];
+        int head = -1;
+        int tail = 0;
+
+        for(int i=0;i<4;i++)
         {
             EnvNum[i] = UnityEngine.Random.Range(0, 4);
             for (int j = 0; j < i; j++)
@@ -325,9 +349,91 @@ public class GameManager : MonoBehaviour
         }
 
         // 각 숫자는 각자 좌상, 우상, 좌하, 우하를 나타낸다.
+        for(int i=0;i<4;i++)
+        {
+            int X = UnityEngine.Random.Range(0, MaxX);
+            int Y = UnityEngine.Random.Range(0, MaxY);
+            if(tiles.Poses[X,Y].Env !=-1) // 해당 타일이 다른 속성 타일이거나 물타일인경우 되돌린다.
+            {
+                i--;
+            }
+            else // 아닌 경우 타일을 집어넣는다.
+            {
+                tiles.Poses[X, Y].Env = EnvNum[i];
+                MapQ[tail++] = tiles.Poses[X,Y];
+            }
+        }
+        int EnvColor;
+        bool isStopSet;
+        int Qx, Qy;
+        int End = MaxX * MaxY;
+        while(head!=tail)
+        {
+            isStopSet = true;
+            Qx = MapQ[(++head)%End].x; // 범위 초과를 막기위한 방법 -> 나머지를 출력하여 초과하면 0으로 돌아간다.
+            Qy = MapQ[head%End].y;
+            EnvColor = tiles.Poses[Qx,Qy].Env;
 
-        
+            if (Qx!=0 && tiles.Poses[Qx-1, Qy].Env==-1)
+            {
+                if (UnityEngine.Random.Range(0, 101) > RandomOutPercent) // 일정 확률로 해당 범위를 이동하지 않고 정체한다.
+                {
+                    isStopSet = false;
+                    MapQ[(tail++)%End] = tiles.Poses[Qx, Qy];
+                }
+                else
+                {
+                    tiles.Poses[Qx - 1, Qy].Env = EnvColor;
+                    MapQ[(tail++) % End] = tiles.Poses[Qx - 1, Qy];
+                }
+            }
+
+            if (Qy != 0 && tiles.Poses[Qx, Qy-1].Env == -1)
+            {
+                if (UnityEngine.Random.Range(0, 101) > RandomOutPercent)
+                {
+                    if (isStopSet)
+                        MapQ[(tail++) % End] = tiles.Poses[Qx, Qy];
+                }
+                else
+                {
+                    tiles.Poses[Qx, Qy - 1].Env = EnvColor;
+                    MapQ[(tail++) % End] = tiles.Poses[Qx, Qy - 1];
+                }
+            }
+
+            if (Qx <MaxX-1 && tiles.Poses[Qx + 1, Qy].Env == -1)
+            {
+                if (UnityEngine.Random.Range(0, 101) > RandomOutPercent)
+                {
+                    if (isStopSet)
+                        MapQ[(tail++) % End] = tiles.Poses[Qx, Qy];
+                }
+                else
+                {
+                    tiles.Poses[Qx + 1, Qy].Env = EnvColor;
+                    MapQ[(tail++) % End] = tiles.Poses[Qx + 1, Qy];
+                }
+            }
+
+            if (Qy < MaxY-1 && tiles.Poses[Qx, Qy + 1].Env == -1)
+            {
+                if (UnityEngine.Random.Range(0, 101) > RandomOutPercent)
+                {
+                    if (isStopSet)
+                        MapQ[(tail++) % End] = tiles.Poses[Qx, Qy];
+                }
+                else
+                {
+                    tiles.Poses[Qx, Qy + 1].Env = EnvColor;
+                    MapQ[(tail++) % End] = tiles.Poses[Qx, Qy + 1];
+                }
+            }
+
+            // 큐가 빌 때까지 반복한다.
+        }
     }
+
 
     void MakeMap(ref Tiles tileSet, ref GameObject[,] TileObjs)
     {
@@ -335,8 +441,19 @@ public class GameManager : MonoBehaviour
         {
             for(int j=0;j<MaxX;j++)
             {
-                TileObjs[j, i] = Instantiate(high[tileSet.Poses[j, i].Env * 5]);
-                TileObjs[j, i].transform.position = right * (j * tileXSize + firstPosX) + up * (i * tileYSize + firstPosY);
+                Debug.Log(tileSet.Poses[j, i].Env * 5);
+                try
+                {
+                    TileObjs[j, i] = Instantiate(high[tileSet.Poses[j, i].Env * 5]);
+                    TileObjs[j, i].transform.position = right * (j * tileXSize + firstPosX) + up * (i * tileYSize + firstPosY);
+                }
+                catch // 섬인경우 여기서 정해진다.
+                {
+                    tileSet.Poses[j, i].Env = 1; // 숲으로 처리
+
+                    TileObjs[j, i] = Instantiate(high[tileSet.Poses[j, i].Env * 5]);
+                    TileObjs[j, i].transform.position = right * (j * tileXSize + firstPosX) + up * (i * tileYSize + firstPosY);
+                }
             }
         }
     }

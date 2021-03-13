@@ -393,9 +393,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   GridSize: 30
   border: 20
-  tileSurviveNum: 4
+  TileSurviveNum: 4
   randomfillPercent: 55
+  RandomOutPercent: 5
+  RandomSeparatePercent: 5
   rotateNum: 10
+  EnvNum: 0
   seed: 0
   MaxX: 0
   MaxY: 0
