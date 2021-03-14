@@ -426,6 +426,9 @@ MonoBehaviour:
   TileSurviveNum: 4
   randomfillPercent: 55
   RandomOutPercent: 5
+  RandomMountainPercent: 20
+  RandomForestPercent: 00000000000000000000000000000000
+  DecreaseForestPercent: 0
   RandomSeparatePercent: 5
   rotateNum: 10
   EnvNum: 0
