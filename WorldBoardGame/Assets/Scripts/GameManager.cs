@@ -17,6 +17,7 @@ public struct Tiles
 public struct Position
 {
     public int x,y; // 가로, 세로
+    public int tilenumber;// 타일 번호(공통인지 아닌지를 확인)
 
     public bool isGo; // 진입 가능 여부 확인
     
@@ -30,6 +31,7 @@ public struct point
 {
     public int x;
     public int y;
+
     public int tilenumber;
     public int Env;
 }
@@ -192,6 +194,7 @@ public class GameManager : MonoBehaviour
 
                 }
                 tiles.Poses[j, i].Env = -1;
+                tiles.Poses[j, i].isGo = false;
             }
         }
     }
@@ -206,7 +209,7 @@ public class GameManager : MonoBehaviour
             {
                 for(int j=0;j<MaxX;j++)
                 {
-                    if (MapFinding(tiles, ref Env, j, i) > TileSurviveNum)
+                    if (MapFinding(tiles, j, i) > TileSurviveNum)
                     {
                         tiles.Poses[j, i].TileEnv = -1;
                     }
@@ -219,7 +222,7 @@ public class GameManager : MonoBehaviour
         }
     }
     
-    int MapFinding(Tiles tiles,ref int Env,int x, int y)
+    int MapFinding(Tiles tiles,int x, int y)
     {
         int number = 0;
         for(int i=-1;i<=1;i++)
@@ -260,7 +263,6 @@ public class GameManager : MonoBehaviour
         //MakeRiver(ref tiles);
 
         ChangeTile(ref tiles);
-        Debug.Log("after Change");
     }
 
     void FindLake (ref Tiles tiles)
@@ -295,7 +297,6 @@ public class GameManager : MonoBehaviour
         int separateNum = 0;
 
         int startDir = UnityEngine.Random.Range(0, 8); // 0,1 : 좌상 , 2,3 : 우상 , 4,5 : 좌하 , 6,7 : 우하
-        Debug.Log("Direction : " + startDir);
 
 
         //------------------------------------------<방향 정하는 과정>-------------------------------------------------------
@@ -312,9 +313,6 @@ public class GameManager : MonoBehaviour
 
         HorizonMovePercent = 75 - (25 * endDir);
         VerticalMovePercent = 25 + (25 * endDir);
-
-        Debug.Log("x : " + startX + " , y : "+startY);
-        Debug.Log(HorizonMovePercent + " , " + VerticalMovePercent);
 
         int updown = (startDir / 4 < 1 ? -1 : 1); // up이면 +1, down이면 -1 "상"이 들어가면 down, "하"가 들어가면 up
         int leftright = (startDir % 4 > 1 ? -1 : 1); // left면 -1, right면 +1 "좌"가 들어가면 right, "우"가 들어가면 left -> 0145 & 2367
@@ -360,7 +358,7 @@ public class GameManager : MonoBehaviour
             }
         }
 
-
+        int cnt = 0;
         // 큐에 값을 넣는다.
         for (int rot = 0; rot < InputQueNumber; rot++)
         {
@@ -375,6 +373,7 @@ public class GameManager : MonoBehaviour
                 else // 아닌 경우 타일을 집어넣는다.
                 {
                     tiles.Poses[X, Y].TileEnv = EnvNum[i];
+                    tiles.Poses[X, Y].tilenumber = cnt++;
                     MapQ[tail++] = tiles.Poses[X, Y];
                     if(tiles.Poses[X,Y].TileEnv==1)
                     {
@@ -389,6 +388,7 @@ public class GameManager : MonoBehaviour
         QueueCnt = 0; 
         
         int EnvColor;
+        int QtileNum;
         bool isStopSet;
         int Qx, Qy; // 맵 큐에서 꺼낸 값을 담는 변수
         int End = MaxX * MaxY;
@@ -400,7 +400,9 @@ public class GameManager : MonoBehaviour
             isStopSet = true;
             Qx = MapQ[(++head) % End].x; // 범위 초과를 막기위한 방법 -> 나머지를 출력하여 초과하면 0으로 돌아간다.
             Qy = MapQ[head % End].y;
-            EnvColor = tiles.Poses[Qx, Qy].TileEnv;
+            QtileNum = MapQ[head % End].tilenumber;
+            EnvColor = MapQ[head % End].TileEnv;
+
             if (tiles.Poses[Qx,Qy].TileEnv==1) // 꺼낸 타일 속성이 숲일 경우 EndCnt가 늘어난다.
                 EndCnt++;
             if(EndCnt==DecreaseQueue[QueueHead % (MaxX)]) // 이전 단계의 큐 값일 경우 지금까지 쌓은 QueueCnt 값을 큐에 저장한다.
@@ -414,16 +416,16 @@ public class GameManager : MonoBehaviour
             }
 
             // 숲 생성 알고리즘 실행
-            if (tiles.Poses[Qx, Qy].TileEnv != 1)
+            if (tiles.Poses[Qx, Qy].TileEnv != 1 && tiles.Poses[Qx, Qy].TileEnv != 4)
             {
-                if (UnityEngine.Random.Range(0, 101) > RandomForestPercent[tiles.Poses[Qx, Qy].TileEnv])
+                if (UnityEngine.Random.Range(0, 101) < RandomForestPercent[tiles.Poses[Qx, Qy].TileEnv])
                 {
                     tiles.Poses[Qx, Qy].Env = 1 + tiles.Poses[Qx, Qy].TileEnv;
                 }    
             }
-            else
+            else if (tiles.Poses[Qx, Qy].TileEnv == 1)
             {
-                if (UnityEngine.Random.Range(0, 101) > forestPercent)
+                if (UnityEngine.Random.Range(0, 101) < forestPercent)
                 {
                     tiles.Poses[Qx, Qy].Env = 1 + tiles.Poses[Qx, Qy].TileEnv;
                 }
@@ -441,13 +443,14 @@ public class GameManager : MonoBehaviour
                     else
                     {
                         tiles.Poses[Qx - 1, Qy].TileEnv = EnvColor;
+                        tiles.Poses[Qx - 1, Qy].tilenumber = QtileNum;
                         MapQ[(tail++) % End] = tiles.Poses[Qx - 1, Qy];
                     }
                     // 큐에 집어넣을 때마다 카운트를 늘린다.
                     if (EnvColor == 1)
                         QueueCnt++;
                 }
-                else if (tiles.Poses[Qx - 1, Qy].TileEnv != 4) // 만나는 타일이 존재하며, 그 타일이 바다가 아닌 경우
+                else if (tiles.Poses[Qx - 1, Qy].tilenumber != QtileNum && tiles.Poses[Qx-1,Qy].TileEnv!=4) // 만나는 타일이 존재하며, 그 타일이 바다가 아닌 경우
                 {
                     if (UnityEngine.Random.Range(0, 101) < RandomMountainPercent)
                     {
@@ -477,6 +480,7 @@ public class GameManager : MonoBehaviour
                     else
                     {
                         tiles.Poses[Qx, Qy - 1].TileEnv = EnvColor;
+                        tiles.Poses[Qx, Qy - 1].tilenumber = QtileNum;
                         MapQ[(tail++) % End] = tiles.Poses[Qx, Qy - 1];
                         
                         if (EnvColor == 1)
@@ -484,7 +488,7 @@ public class GameManager : MonoBehaviour
                     }
                     
                 }
-                else if (tiles.Poses[Qx, Qy - 1].TileEnv != 4)
+                else if (tiles.Poses[Qx , Qy - 1].tilenumber != QtileNum && tiles.Poses[Qx, Qy - 1].TileEnv != 4)
                 {
                     if (UnityEngine.Random.Range(0, 101) < RandomMountainPercent)
                     {
@@ -513,6 +517,7 @@ public class GameManager : MonoBehaviour
                     else
                     {
                         tiles.Poses[Qx + 1, Qy].TileEnv = EnvColor;
+                        tiles.Poses[Qx + 1, Qy].tilenumber = QtileNum;
                         MapQ[(tail++) % End] = tiles.Poses[Qx + 1, Qy];
 
                         if (EnvColor == 1)
@@ -520,7 +525,7 @@ public class GameManager : MonoBehaviour
                     }
                     
                 }
-                else if (tiles.Poses[Qx + 1, Qy].TileEnv != 4)
+                else if (tiles.Poses[Qx + 1, Qy].tilenumber != QtileNum && tiles.Poses[Qx + 1, Qy].TileEnv != 4)
                 {
                     if (UnityEngine.Random.Range(0, 101) < RandomMountainPercent)
                     {
@@ -549,13 +554,14 @@ public class GameManager : MonoBehaviour
                     else
                     {
                         tiles.Poses[Qx, Qy + 1].TileEnv = EnvColor;
+                        tiles.Poses[Qx, Qy + 1].tilenumber = QtileNum;
                         MapQ[(tail++) % End] = tiles.Poses[Qx, Qy + 1];
 
                         if (EnvColor == 1)
                             QueueCnt++;
                     }           
                 }
-                else if (tiles.Poses[Qx, Qy + 1].TileEnv != 4)
+                else if (tiles.Poses[Qx, Qy+1].tilenumber != QtileNum && tiles.Poses[Qx, Qy + 1].TileEnv != 4)
                 {
                     if (UnityEngine.Random.Range(0, 101) < RandomMountainPercent)
                     {
@@ -583,7 +589,6 @@ public class GameManager : MonoBehaviour
         {
             for(int j=0;j<MaxX;j++)
             {
-                Debug.Log(tileSet.Poses[j, i].TileEnv * 5);
                 try
                 {
                     TileObjs[j, i] = Instantiate(high[tileSet.Poses[j, i].TileEnv * 5]);
@@ -592,7 +597,7 @@ public class GameManager : MonoBehaviour
                     if (tileSet.Poses[j, i].Env != -1)
                     {
                         TileEnvs[j, i] = Instantiate(env[tileSet.Poses[j, i].Env]);
-                        TileObjs[j, i].transform.position = right * (j * tileXSize + firstPosX) + up * (i * tileYSize + firstPosY) + forward * -3;
+                        TileEnvs[j, i].transform.position = right * (j * tileXSize + firstPosX) + up * (i * tileYSize + firstPosY) + forward * -3;
                     }
                 }
                 catch // 섬인경우 여기서 정해진다.

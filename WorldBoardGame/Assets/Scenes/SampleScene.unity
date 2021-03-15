@@ -427,9 +427,9 @@ MonoBehaviour:
   randomfillPercent: 55
   RandomOutPercent: 5
   RandomMountainPercent: 20
-  RandomForestPercent: 00000000000000000000000000000000
-  DecreaseForestPercent: 0
-  RandomSeparatePercent: 5
+  RandomForestPercent: 05000000320000000500000001000000
+  DecreaseForestPercent: 2
+  RandomSeparatePercent: 0
   rotateNum: 10
   EnvNum: 0
   InputQueNumber: 4
