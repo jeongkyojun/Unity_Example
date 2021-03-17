@@ -26,6 +26,7 @@ public struct Position
     
     public int TileEnv; // 환경 설정 0,1,2,3,4 로 구성, 4는 물
     public int Env; // 지형 ( 0:산 , 1+Tileenv : 해당 속성에 맞는 나무 숫자 (Tileenv는 최대 3까지), 이후 아직 안정해짐
+                    // 만약, TileEnv = 4, 즉 물인 경우 0 : 바다, 1 : 호수, 2: 강, 3 : 용암, 4: 얼음 이다.
 };
 
 public struct point
@@ -208,7 +209,6 @@ public class GameManager : MonoBehaviour
                 tileTmp.Poses[j, i].TileEnv = 4;
                 tileTmp.Poses[j, i].x = j;
                 tileTmp.Poses[j, i].y = i;
-                tileTmp.Poses[j, i].Env = -1;
                 tileTmp.Poses[j, i].isGo = false;
             }
         }
@@ -236,10 +236,12 @@ public class GameManager : MonoBehaviour
                     if(EnvRange > randomfillPercent)
                     {
                         tiles.Poses[j, i].TileEnv = 4;
+                        tiles.Poses[j, i].Env = 0;
                     }
                     else
                     {
                         tiles.Poses[j, i].TileEnv = -1;
+                        tiles.Poses[j, i].Env = -1;
                     }
 
                 }
@@ -260,10 +262,12 @@ public class GameManager : MonoBehaviour
                     if (MapFinding(tiles, j, i) > TileSurviveNum)
                     {
                         tiles.Poses[j, i].TileEnv = -1;
+                        tiles.Poses[j, i].Env = -1;
                     }
                     else
                     {
                         tiles.Poses[j, i].TileEnv = 4;
+                        tiles.Poses[j, i].Env = 0;
                     }
                 }
             }
@@ -305,7 +309,7 @@ public class GameManager : MonoBehaviour
     void MakeEnv(ref Tiles tiles)
     {
         // 호수를 찾는다.
-        //FindLake(ref tiles);
+        FindLake(ref tiles);
 
         // 강을 지정한다.
         //MakeRiver(ref tiles);
@@ -320,12 +324,118 @@ public class GameManager : MonoBehaviour
         {
             for(int j=0;j<MaxY;j++)
             {
-                if(i==0)
+                // j가 맨 처음값일때 i의 직전 타일만 확인한다.
+                if (tiles.Poses[j, i].TileEnv == 4)
+                {
+                    if (j == 0)
+                    {
+                        if (i == 0)
+                        {
+                            tiles.Poses[j, i].Env = 0;
+                        }
+                        else
+                        {
+                            if (tiles.Poses[j, i - 1].Env != 0)
+                                tiles.Poses[j, i].Env = 1;
+                        }
+                    }
+                    else
+                    {
+                        if (i == 0)
+                        {
+                            if (tiles.Poses[j - 1, i].Env != 0)
+                                tiles.Poses[j, i].Env = 1;
+                        }
+                        else
+                        {
+                            if (tiles.Poses[j - 1, i].Env != 0 && tiles.Poses[j, i - 1].Env != 0)
+                                tiles.Poses[j, i].Env = 1;
+                        }
+                    }
+                }
+            }
+        }
+
+        for (int i = MaxX-1; i >= 0; i--)
+        {
+            for (int j = MaxY-1; j >=0; j--)
+            {
+                // j가 맨 처음값일때 i의 직전 타일만 확인한다.
+                if (tiles.Poses[j, i].TileEnv == 4)
+                {
+                    if (j == MaxY - 1)
+                    {
+                        if (i == MaxX - 1)
+                        {
+                            tiles.Poses[j, i].Env = 0;
+                        }
+                        else
+                        {
+                            if (tiles.Poses[j, i + 1].Env != 0)
+                            {
+                                if (tiles.Poses[j, i].Env != 0)
+                                    tiles.Poses[j, i].Env = 1;
+                            }
+                            else
+                            {
+                                tiles.Poses[j, i].Env = 0;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        if (i == MaxX - 1)
+                        {
+                            if (tiles.Poses[j + 1, i].Env != 0)
+                            {
+                                if (tiles.Poses[j, i].Env != 0)
+                                    tiles.Poses[j, i].Env = 1;
+                            }
+                            else
+                            {
+                                tiles.Poses[j, i].Env = 0;
+                            }
+                        }
+                        else
+                        {
+                            if (tiles.Poses[j + 1, i].Env != 0 && tiles.Poses[j, i + 1].Env != 0)
+                            {
+                                if (tiles.Poses[j, i].Env != 0)
+                                    tiles.Poses[j, i].Env = 1;
+                            }
+                            else
+                            {
+                                tiles.Poses[j, i].Env = 0;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        /* 이후론 아직 필요없어서 보류
+        for (int i = 0; i < MaxX; i++)
+        {
+            for (int j = 0; j < MaxY; j++)
+            {
+                if (i == 0)
                 {
 
                 }
             }
         }
+
+        for (int i = 0; i < MaxX; i++)
+        {
+            for (int j = 0; j < MaxY; j++)
+            {
+                if (i == 0)
+                {
+
+                }
+            }
+        }
+        */
     }
 
     void MakeRiver(ref Tiles tiles)
@@ -628,13 +738,21 @@ public class GameManager : MonoBehaviour
             {
                 try
                 {
-                    TileObjs[j, i] = Instantiate(high[tileSet.Poses[j, i].TileEnv * 5]);
-                    TileObjs[j, i].transform.position = right * (j * tileXSize + firstPosX) + up * (i * tileYSize + firstPosY);
-
-                    if (tileSet.Poses[j, i].Env != -1)
+                    if (tileSet.Poses[j, i].TileEnv != 4)
                     {
-                        TileEnvs[j, i] = Instantiate(env[tileSet.Poses[j, i].Env]);
-                        TileEnvs[j, i].transform.position = right * (j * tileXSize + firstPosX) + up * (i * tileYSize + firstPosY) + forward * -3;
+                        TileObjs[j, i] = Instantiate(high[tileSet.Poses[j, i].TileEnv * 5]);
+                        TileObjs[j, i].transform.position = right * (j * tileXSize + firstPosX) + up * (i * tileYSize + firstPosY);
+
+                        if (tileSet.Poses[j, i].Env != -1)
+                        {
+                            TileEnvs[j, i] = Instantiate(env[tileSet.Poses[j, i].Env]);
+                            TileEnvs[j, i].transform.position = right * (j * tileXSize + firstPosX) + up * (i * tileYSize + firstPosY) + forward * -3;
+                        }
+                    }
+                    else
+                    {
+                        TileObjs[j, i] = Instantiate(high[(tileSet.Poses[j, i].TileEnv * 5)+tileSet.Poses[j,i].Env]);
+                        TileObjs[j, i].transform.position = right * (j * tileXSize + firstPosX) + up * (i * tileYSize + firstPosY);
                     }
                 }
                 catch // 섬인경우 여기서 정해진다.
