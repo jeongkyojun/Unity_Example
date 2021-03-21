@@ -312,7 +312,7 @@ public class GameManager : MonoBehaviour
         FindLake(ref tiles);
 
         // 강을 지정한다.
-        //MakeRiver(ref tiles);
+        MakeRiver(ref tiles);
 
         ChangeTile(ref tiles);
     }
@@ -413,29 +413,89 @@ public class GameManager : MonoBehaviour
             }
         }
 
-        /* 이후론 아직 필요없어서 보류
-        for (int i = 0; i < MaxX; i++)
+        for (int i = 1; i < MaxX-1; i++)
         {
-            for (int j = 0; j < MaxY; j++)
+            for (int j = 1; j < MaxY-1; j++)
             {
-                if (i == 0)
+                // j가 맨 처음값일때 i의 직전 타일만 확인한다.
+                if (tiles.Poses[j, i].TileEnv == 4)
                 {
 
+                    if (tiles.Poses[j - 1, i].Env != 0 && tiles.Poses[j, i - 1].Env != 0&& tiles.Poses[j + 1, i].Env != 0 && tiles.Poses[j, i + 1].Env != 0)
+                    {
+                        if (tiles.Poses[j, i].Env != 0)
+                            tiles.Poses[j, i].Env = 1;
+                    }
+                    else
+                    {
+                        tiles.Poses[j, i].Env = 0;
+                    }
                 }
             }
         }
 
-        for (int i = 0; i < MaxX; i++)
+        for (int i = MaxX - 2; i > 0; i--)
         {
-            for (int j = 0; j < MaxY; j++)
+            for (int j = MaxY - 2; j > 0; j--)
             {
-                if (i == 0)
+                // j가 맨 처음값일때 i의 직전 타일만 확인한다.
+                if (tiles.Poses[j, i].TileEnv == 4)
                 {
 
+                    if (tiles.Poses[j - 1, i].Env != 0 && tiles.Poses[j, i - 1].Env != 0 && tiles.Poses[j + 1, i].Env != 0 && tiles.Poses[j, i + 1].Env != 0)
+                    {
+                        if (tiles.Poses[j, i].Env != 0)
+                            tiles.Poses[j, i].Env = 1;
+                    }
+                    else
+                    {
+                        tiles.Poses[j, i].Env = 0;
+                    }
                 }
             }
         }
-        */
+
+        for (int j = 1; j < MaxY - 1; j++)
+        {
+            for (int i = 1; i < MaxX - 1; i++)
+            {
+                // j가 맨 처음값일때 i의 직전 타일만 확인한다.
+                if (tiles.Poses[j, i].TileEnv == 4)
+                {
+
+                    if (tiles.Poses[j - 1, i].Env != 0 && tiles.Poses[j, i - 1].Env != 0 && tiles.Poses[j + 1, i].Env != 0 && tiles.Poses[j, i + 1].Env != 0)
+                    {
+                        if (tiles.Poses[j, i].Env != 0)
+                            tiles.Poses[j, i].Env = 1;
+                    }
+                    else
+                    {
+                        tiles.Poses[j, i].Env = 0;
+                    }
+                }
+            }
+        }
+
+        for (int j = MaxY - 2; j > 0; j--)
+        {
+            for (int i = MaxX - 2; i > 0; i--)
+            {
+                // j가 맨 처음값일때 i의 직전 타일만 확인한다.
+                if (tiles.Poses[j, i].TileEnv == 4)
+                {
+
+                    if (tiles.Poses[j - 1, i].Env != 0 && tiles.Poses[j, i - 1].Env != 0 && tiles.Poses[j + 1, i].Env != 0 && tiles.Poses[j, i + 1].Env != 0)
+                    {
+                        if (tiles.Poses[j, i].Env != 0)
+                            tiles.Poses[j, i].Env = 1;
+                    }
+                    else
+                    {
+                        tiles.Poses[j, i].Env = 0;
+                    }
+                }
+            }
+        }
     }
 
     void MakeRiver(ref Tiles tiles)
@@ -454,6 +514,8 @@ public class GameManager : MonoBehaviour
 
         int separateNum = 0;
 
+
+
         int startDir = UnityEngine.Random.Range(0, 8); // 0,1 : 좌상 , 2,3 : 우상 , 4,5 : 좌하 , 6,7 : 우하
 
 
@@ -461,7 +523,8 @@ public class GameManager : MonoBehaviour
 
         //==================================================================================================================
         // 짝수면 X는 0, Y는 1이 되어야 한다. 
-        startX = UnityEngine.Random.Range((int)(MaxX * 0.3f * (startDir % 4 > 1 ? 2 : 0) * ((startDir + 1)% 2)), (int)(MaxX * 0.3f *((startDir % 4 > 1 ? 2 : 0)+1) * ((startDir+1)%2))); // 좌측 : 0 , 우측 : 2
+        // 위치 설정 공식 위의 Dir 위치를 비교하여 0 ~ 3/1 또는 3/2 ~ 1 지점을 선택하여 결정한다.
+        startX = UnityEngine.Random.Range((int)(MaxX * 0.3f * (startDir % 4 > 1 ? 2 : 0) * ((startDir + 1) % 2)), (int)(MaxX * 0.3f * ((startDir % 4 > 1 ? 2 : 0) + 1) * ((startDir + 1) % 2))); // 좌측 : 0 , 우측 : 2
         startY = UnityEngine.Random.Range((int)(MaxX * 0.3f * (startDir % 4 > 1 ? 2 : 0) * (startDir % 2)), (int)(MaxX * 0.3f * ((startDir % 4 > 1 ? 2 : 0) + 1) * (startDir % 2))); // 좌측 : 0 , 우측 : 2
 
         int endDir = UnityEngine.Random.Range(0, 3); // 75:25 상향, 50:50 대각선 , 25:75 평행
@@ -474,22 +537,87 @@ public class GameManager : MonoBehaviour
 
         int updown = (startDir / 4 < 1 ? -1 : 1); // up이면 +1, down이면 -1 "상"이 들어가면 down, "하"가 들어가면 up
         int leftright = (startDir % 4 > 1 ? -1 : 1); // left면 -1, right면 +1 "좌"가 들어가면 right, "우"가 들어가면 left -> 0145 & 2367
-        //===================================================================================================================
+                                                     //===================================================================================================================
 
         //-------------------------------------------------------------------------------------------------------------------
-        
+        int stopX = (startX < MaxX / 2 ? MaxX : 0);
+        int stopY = (startY < MaxY / 2 ? MaxY : 0);
+
+        int Xinc = (startX < MaxX / 2 ? 1 : -1);
+        int Yinc = (startY < MaxY / 2 ? 1 : -1);
+
         while (true)
         {
-            if (UnityEngine.Random.Range(0, 101) < HorizonMovePercent)
+            int horizon = UnityEngine.Random.Range(0, 101);
+            int vertical = UnityEngine.Random.Range(0, 101);
+            bool positionChange = false;
+            if (horizon >= HorizonMovePercent)
             {
-
+                if (vertical < VerticalMovePercent)
+                {
+                    positionChange = true;
+                    startY += Yinc;
+                }
+            }
+            else if (vertical < VerticalMovePercent)
+            {
+                if (horizon < vertical)
+                {
+                    positionChange = true;
+                    startY += Yinc;
+                }
+                else if (horizon > vertical)
+                {
+                    positionChange = true;
+                    startX += Xinc;
+                }
+                else
+                {
+                    if (UnityEngine.Random.Range(0, 101) > 50)
+                    {
+                        positionChange = true;
+                        startY += Yinc;
+                    }
+                    else
+                    {
+                        positionChange = true;
+                        startX += Xinc;
+                    }
+                }
+            }
+            else
+            {
+                positionChange = true;
+                startX += Xinc;
             }
 
-            if(startX==0||startX==MaxX-1 || startY == 0 ||startY==MaxY-1)
-            {
+
+            // 끝까지 간 경우 종료한다.
+            if (startX == stopX || startY == stopY)
                 break;
+
+            // 타일 속성이 물인경우 -> 바다면 pass
+            if (tiles.Poses[startX, startY].TileEnv == 4)
+            {
+                if (tiles.Poses[startX, startY].Env != 0)
+                {
+                    if (tiles.Poses[startX, startY].Env == 2 && positionChange)
+                    {
+                        Debug.Log("find River!" + tiles.Poses[startX, startY].TileEnv + " , " + tiles.Poses[startX, startY].Env);
+                        break;
+                    }
+                }
             }
+            // 그 외 땅인경우 -> 물줄기를 추가한다.
+            else
+            {
+                // 타일을 물로 바꾸고 강으로 만든다.
+                tiles.Poses[startX, startY].TileEnv = 4;
+                tiles.Poses[startX, startY].Env = 2;
+            }
+
         }
+
     }
 
     void ChangeTile(ref Tiles tiles)
