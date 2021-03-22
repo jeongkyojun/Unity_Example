@@ -1004,8 +1004,8 @@ MonoBehaviour:
   seed: 0
   MaxX: 0
   MaxY: 0
-  tileXSize: 2
-  tileYSize: 2
+  tileXSize: 5.1
+  tileYSize: 5.1
   MoveCntText: {fileID: 1641620957}
   moveCnt: 5
   high:
@@ -2172,7 +2172,7 @@ PrefabInstance:
     - target: {fileID: 4527972212641974783, guid: 1821d948a632e774ebdd603d64ee1290,
         type: 3}
       propertyPath: m_LocalScale.y
-      value: 1.4999998
+      value: 4.5
       objectReference: {fileID: 0}
     - target: {fileID: 4527972212641974783, guid: 1821d948a632e774ebdd603d64ee1290,
         type: 3}
@@ -2468,7 +2468,7 @@ PrefabInstance:
     - target: {fileID: 7941297073618789756, guid: f95295f3f18790d458f0d9b3b5d72d13,
         type: 3}
       propertyPath: m_LocalScale.y
-      value: 1.4999998
+      value: 4.5
       objectReference: {fileID: 0}
     - target: {fileID: 7941297073618789756, guid: f95295f3f18790d458f0d9b3b5d72d13,
         type: 3}
@@ -2695,7 +2695,7 @@ PrefabInstance:
     - target: {fileID: 6193041768788777568, guid: a73b4a85d563a934cb7c0ac463587c6c,
         type: 3}
       propertyPath: m_LocalScale.y
-      value: 1.4999998
+      value: 4.5
       objectReference: {fileID: 0}
     - target: {fileID: 6193041768788777568, guid: a73b4a85d563a934cb7c0ac463587c6c,
         type: 3}
@@ -3282,7 +3282,7 @@ PrefabInstance:
     - target: {fileID: 9134826604136860826, guid: de142bf9c20ba1748aa318ac022ba0b8,
         type: 3}
       propertyPath: m_LocalScale.y
-      value: 1.4999998
+      value: 4.5
       objectReference: {fileID: 0}
     - target: {fileID: 9134826604136860826, guid: de142bf9c20ba1748aa318ac022ba0b8,
         type: 3}

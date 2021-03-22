@@ -311,10 +311,14 @@ public class GameManager : MonoBehaviour
         // 호수를 찾는다.
         FindLake(ref tiles);
 
-        // 강을 지정한다.
-        MakeRiver(ref tiles);
+        // 강을 지정한다. -> 실패, 만드려면 새로운 알고리즘 찾아야함
+        //MakeRiver(ref tiles);
 
         ChangeTile(ref tiles);
+
+        AddTown(ref tiles);
+
+        AddMonster(ref tiles);
     }
 
     void FindLake (ref Tiles tiles)
@@ -822,11 +826,34 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    void AddTown(ref Tiles tiles)
+    {
+
+    }
+
+    void AddMonster(ref Tiles tiles)
+    {
+
+    }
+
     void tileSetting(ref Tiles tiles, int x, int y, bool isGo, int Env, int tileNumber)
     {
         tiles.Poses[x, y].TileEnv = Env;
         tiles.Poses[x, y].isGo = isGo;
         tiles.Poses[x, y].tilenumber = tileNumber;
+    }
+
+    void MakeMountainLine(ref Tiles tiles, int x, int y, int width, int type)
+    {
+        // type 이 양수면 x, 음수면 y, %2==0 이면 + , %2==0이면 -
+        int dirX = (type < 0 ? 0 : 1) * (type% 2 == 0 ? 1 : -1);
+        int dirY = (type < 0 ? 1 : 0) * ((-type)%2==0?1:-1);
+
+        for(int i=0;i<width;i++)
+        {
+            MakeMountain(ref tiles, x, y);
+            MakeMountain(ref tiles, x, y);
+        }
     }
     // 산 생성 함수
     void MakeMountain(ref Tiles tiles, int x, int y)
@@ -847,6 +874,7 @@ public class GameManager : MonoBehaviour
             if (UnityEngine.Random.Range(0, 101) < RandomForestPercent[tiles.Poses[x, y].TileEnv])
             {
                 tiles.Poses[x, y].Env = 1 + tiles.Poses[x, y].TileEnv;
+                tiles.Poses[x, y].isGo = true;
             }
         }
         if (tiles.Poses[x, y].TileEnv == 1) // 숲환경에 한해서 뭉쳐서 나올수 있게 해주는 부분
@@ -854,6 +882,7 @@ public class GameManager : MonoBehaviour
             if (UnityEngine.Random.Range(0, 101) < forestPercent)
             {
                 tiles.Poses[x, y].Env = 1 + tiles.Poses[x, y].TileEnv;
+                tiles.Poses[x, y].isGo = true;
             }
         }
     }
