@@ -18,6 +18,7 @@ public struct Tiles
 public struct Position
 {
     public int x,y; // 가로, 세로
+
     public int tilenumber;// 타일 번호(공통인지 아닌지를 확인)
 
     public bool isGo; // 진입 가능 여부 확인
@@ -29,13 +30,16 @@ public struct Position
                     // 만약, TileEnv = 4, 즉 물인 경우 0 : 바다, 1 : 호수, 2: 강, 3 : 용암, 4: 얼음 이다.
 };
 
-public struct point
+public struct Lake
 {
-    public int x;
-    public int y;
+    public Position[] lakepos;
+    public int lakeSize;
+}
 
-    public int tilenumber;
-    public int Env;
+public struct Forest
+{
+    public Position[] forestPos; //배열 형식으로 처리
+    public int forestSize;
 }
 
 public class GameManager : MonoBehaviour
@@ -100,6 +104,9 @@ public class GameManager : MonoBehaviour
     [Header("동적 변수")]
     public Tiles TE = new Tiles();
     public GameObject[,] TilesArr; // 타일 오브젝트 저장
+    public Forest FE = new Forest();
+    public Lake LE = new Lake();
+
     GameObject[,] TileEnvArr;
 
     //기본 벡터
@@ -111,6 +118,7 @@ public class GameManager : MonoBehaviour
     [Header("플레이어 관련")]
     public GameObject player;
     PlayerManaging playerScript;
+
 
     // Start is called before the first frame update
     void Start()
