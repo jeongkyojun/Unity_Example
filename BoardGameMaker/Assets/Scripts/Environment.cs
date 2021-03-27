@@ -4,6 +4,15 @@ using UnityEngine;
 
 public enum Enviornment
 {
+    Normal = 0,
+    Water = 1,
+    Mountain = 2,
+}
+
+public enum Object
+{
+    Forest = 0,
+    Rock = 1,
 
 }
 

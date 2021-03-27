@@ -75,7 +75,11 @@ public class GameManager : MonoBehaviour
     [Header("반복횟수")]
     public int rotateNum;
     public int EnvNum;
-    public int InputQueNumber;
+    public int InputIceQueNumber;
+    public int InputForestQueNumber;
+    public int InputFireQueNumber;
+    public int InputWildQueNumber;
+
     [Header("랜덤관련")]
     public int seed; // 랜덤 시드넘버
 
@@ -134,6 +138,13 @@ public class GameManager : MonoBehaviour
         TileEnvArr = new GameObject[MaxX, MaxY];
         firstPosX = tileXSize / 2;
         firstPosY = tileYSize / 2;
+
+
+        FE.forestPos = new Position[MaxX * MaxY];
+        FE.forestSize = -1;
+
+        LE.lakepos = new Position[MaxX * MaxY];
+        LE.lakeSize = -1;
 
         Debug.Log("seed : " + seed.ToString());
         UnityEngine.Random.InitState(seed);
@@ -658,21 +669,40 @@ public class GameManager : MonoBehaviour
 
         int cnt = 0;
         // 큐에 값을 넣는다.
-        for (int rot = 0; rot < InputQueNumber; rot++)
+        for (int i = 0; i < 4; i++)
         {
-            for (int i = 0; i < 4; i++)
+            int repeatNumber;
+            switch(i)
+            {
+                case 0:
+                    repeatNumber = InputIceQueNumber;
+                    break;
+                case 1:
+                    repeatNumber = InputForestQueNumber;
+                    break;
+                case 2:
+                    repeatNumber = InputFireQueNumber;
+                    break;
+                case 3:
+                    repeatNumber = InputWildQueNumber;
+                    break;
+                default:
+                    repeatNumber = 0;
+                    break;
+            }
+            for (int j = 0; j < repeatNumber; j++)
             {
                 int X = UnityEngine.Random.Range(0, MaxX);
                 int Y = UnityEngine.Random.Range(0, MaxY);
                 if (tiles.Poses[X, Y].TileEnv != -1) // 해당 타일이 다른 속성 타일이거나 물타일인경우 되돌린다.
                 {
-                    i--;
+                    j--;
                 }
                 else // 아닌 경우 타일을 집어넣는다.
                 {
                     tileSetting(ref tiles, X, Y, true, EnvNum[i], cnt++);
                     MapQ[tail++] = tiles.Poses[X, Y];
-                    if(tiles.Poses[X,Y].TileEnv==1)
+                    if (tiles.Poses[X, Y].TileEnv == 1)
                     {
                         QueueCnt++;
                     }

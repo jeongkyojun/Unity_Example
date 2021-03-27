@@ -1250,18 +1250,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0481a822f5cf407489ddb9e00d2f5810, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  GridSize: 80
+  GridSize: 200
   border: 10
   TileSurviveNum: 4
   randomfillPercent: 55
   RandomOutPercent: 5
   RandomMountainPercent: 15
-  RandomForestPercent: 050000000300000005000000010000001e000000
-  DecreaseForestPercent: 2
+  RandomForestPercent: 0100000001000000010000000000000028000000
+  DecreaseForestPercent: 1
   RandomSeparatePercent: 0
   rotateNum: 10
   EnvNum: 0
-  InputQueNumber: 4
+  InputIceQueNumber: 3
+  InputForestQueNumber: 4
+  InputFireQueNumber: 4
+  InputWildQueNumber: 2
   seed: 0
   MaxX: 0
   MaxY: 0
