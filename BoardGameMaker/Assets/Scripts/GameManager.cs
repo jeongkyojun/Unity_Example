@@ -34,13 +34,16 @@ public struct Position
 public class GameManager : MonoBehaviour
 {
     [Header("게임 오브젝트 설정")]
-    public GameObject[] Walls; // 장애물
-    public GameObject[] Tiles; // 단순 지형
+    public GameObject Walls; // 장애물
+    public GameObject Tiles; // 단순 지형
+    public Vector2 TileSize; // 타일 크기 설정
 
-    public GameObject player;
-    public GameObject monster;
+    public GameObject player; // 플레이어
+    public GameObject monster; // 몬스터
 
-    [Header("방 크기 설정")]
+    public Vector3 firstPos; // 처음 위치
+
+    [Header("방 크기 설정 - RoomNumber와 RoomSize에 따라 자동 변경")]
     public Vector2 Size;
 
     [Header("세포 자동화 설정")]
@@ -49,6 +52,7 @@ public class GameManager : MonoBehaviour
     public int GroundSetNumber;
     public int rotateNumber;
     public int isMountainNum;
+    public int isMountainNum2;
 
     [Header("백트래킹 설정")]
     public Vector2 RoomNumber;
@@ -58,20 +62,36 @@ public class GameManager : MonoBehaviour
     public int mountainWidth;
 
     public Map GameMap; // 맵 저장 정보
+    public GameObject[,] MapObjects;
 
     Vector3 up = Vector3.up;
     Vector3 right = Vector3.right;
     Vector3 foward = Vector3.forward;
-    
+    Vector3 one = Vector3.one;
+
+    Vector2 up2 = Vector2.up;
+    Vector2 right2 = Vector2.right;
+    Vector2 one2 = Vector2.one;
+
     // Start is called before the first frame update
     void Start()
     {
+        // 사이즈 지정
+        Size = RoomSize * RoomNumber + (RoomNumber + one2) * mountainWidth;
+
         InitMaps(ref GameMap); // 구조체 선언 및 초기화 작업 실행
 
-        // 산맥 형성
-        MapMaking(ref GameMap);
+        #region 메이즈 알고리즘 3종(주석처리)
+        // 메이즈 알고리즘 3종
+        // 미로 생성 후, 세포자동화 수행시 산맥이 생성되지 않을까 해서 만들었으나, 안되서 주석처리함
+        //MapMaking_BST(ref GameMap); // 메이즈 생성 알고리즘 1 - 이진탐색트리
+        //MapMaking_SideWinder(ref GameMap); // 메이즈 생성 알고리즘 2 - 사이드와인더
+        //MapMaking_Stack(ref GameMap); // 메이즈 생성 알고리즘 3 - 스택
+        #endregion
 
-        MakingTile(ref GameMap);
+        MountainScaling(ref GameMap); // 산맥 스케일링
+
+        MakingTile(ref GameMap,ref MapObjects);
     }
 
     // Update is called once per frame
@@ -84,15 +104,15 @@ public class GameManager : MonoBehaviour
     {
         // 구조체 크기 할당함수
         GameMap = new Map();
-        GameMap.Seed = 00000042;
+        //GameMap.Seed = 00000042;
+        GameMap.Seed = UnityEngine.Random.Range(0, 100000000);
         UnityEngine.Random.InitState(GameMap.Seed);
 
         
         GameMap.Tiles = new Position[(int)Size.x, (int)Size.y]; // 타일 크기 설정
-
-        // Xsize = RoomSizeX * RoomNumber + (RoomNumber-1) * MountainWidth 
         GameMap.Rooms = new Room[(int)RoomNumber.x, (int)RoomNumber.y]; // 룸 설정
-        RoomSize = (Size - (RoomNumber - new Vector2(1, 1))*mountainWidth) / RoomNumber;
+
+        MapObjects = new GameObject[(int)Size.x,(int)Size.y];
 
         for(int i=0;i<RoomNumber.x;i++)
         {
@@ -116,23 +136,23 @@ public class GameManager : MonoBehaviour
                     {
                         // 이제부터 내부 채우기 -> 시작점 RoomSize.x*i + mountainWidth*i , RoomSize.y*j + mountainWidth * j
                         //(지금은 일단 true/false로만 채움)
-                        GameMap.Tiles[i * (int)(RoomSize.x + mountainWidth)+a, j * (int)(RoomSize.y + mountainWidth)+b].isGo = true;
+                        GameMap.Tiles[i * (int)(RoomSize.x + mountainWidth)+mountainWidth+a, j * (int)(RoomSize.y + mountainWidth)+mountainWidth+b].isGo = true;
 
                     }
                 }
             }
         }
         //세로격자 채우기
-        for(int i=0;i<RoomNumber.x-1;i++)
+        for(int i=0;i<RoomNumber.x;i++)
         {
-            for(int j=0;j<RoomNumber.y-1;j++)
+            for(int j=0;j<RoomNumber.y;j++)
             {
                 for (int a = 0; a < mountainWidth; a++)
                 {
                     for (int b = 0; b < RoomSize.y; b++)
                     {
                         // 벽 만들기(세로)
-                        GameMap.Tiles[(int)(i * (RoomSize.x + mountainWidth) + RoomSize.x + a), (int)(j * (RoomSize.y + mountainWidth)+ RoomSize.y + b)].isGo = false;
+                        GameMap.Tiles[(int)(i * (RoomSize.x + mountainWidth) + a), (int)(j * (RoomSize.y + mountainWidth)+ b)].isGo = false;
                     }
                 }
 
@@ -141,32 +161,120 @@ public class GameManager : MonoBehaviour
                     for (int b = 0; b < mountainWidth; b++)
                     {
                         // 벽 만들기(세로)
-                        GameMap.Tiles[(int)(i * (RoomSize.x + mountainWidth) + a), (int)(j * (RoomSize.y + mountainWidth) + RoomSize.y + b)].isGo = false;
+                        GameMap.Tiles[(int)(i * (RoomSize.x + mountainWidth) + a), (int)(j * (RoomSize.y + mountainWidth) + b)].isGo = false;
                     }
                 }
             }
         }
     }
 
-    void MapMaking(ref Map GameMap)
+    #region 메이즈 알고리즘
+
+    void MapMaking_BST(ref Map GameMap)
     {
-        // 백트래킹을 이용한 메이즈 알고리즘
+        Vector2 nowPos;
+        for(int i=0;i<RoomSize.x;i++)
+        {
+            for(int j=0;j<RoomSize.y;j++)
+            {
+                nowPos = right2 * i + up2 * j;
+                if (i != RoomSize.x - 1)
+                {
+                    if (j != RoomSize.y - 1)
+                    {
+                        int Open = UnityEngine.Random.Range(0, 2);
+                        if (Open == 0)
+                        {
+                            // 옆을 뚫는다
+                            BreakingWall(ref GameMap, nowPos, nowPos + up2);
+                        }
+                        else
+                        {
+                            // 아래를 뚫는다.
+                            BreakingWall(ref GameMap, nowPos, nowPos + right2);
+                        }
+                    }
+                    else
+                    {
+                        BreakingWall(ref GameMap, nowPos, nowPos + right2);
+                    }
+                }
+                else
+                {
+                    if (j != RoomSize.y - 1)
+                    {
+                        BreakingWall(ref GameMap, nowPos, nowPos + up2);
+                    }
+                }
+            }
+        }
+    }
+
+    void MapMaking_SideWinder(ref Map GameMap)
+    {
+        bool isOpen;
+        Vector2 nowPos;
+        for(int i=0;i<RoomSize.x;i++)
+        {
+            isOpen = false;
+            for(int j=0;j<RoomSize.y;j++)
+            {
+                nowPos = i * right2 + j * up2;
+                
+                if (i == 0)
+                {
+                    // 맨 처음줄은 일렬로 쭉 뚫는다.
+                    if (j < RoomSize.y - 1)
+                    {
+                        BreakingWall(ref GameMap, nowPos, nowPos + up2);
+                    }
+                }
+                else
+                {
+                    // 확률에 따라 위를 뚫는다. 만약 이미 뚫었다면, 넘어간다.
+                    if (UnityEngine.Random.Range(0, 2) == 0 && !isOpen)
+                    {
+                        BreakingWall(ref GameMap, nowPos, nowPos - right2);
+                        isOpen = true;
+                    }
+                    // 두번째부터는 옆으로 계속 뚫거나, 다음으로 넘어가는것을 수행한다.
+                    if (UnityEngine.Random.Range(0, 2) == 0 && j < RoomSize.y - 1)
+                    {
+                        BreakingWall(ref GameMap, nowPos, nowPos + up2);
+                    }
+                    else
+                    {
+                        // 만약, 구획이 끝났는데도 위가 뚫리지 않으면 뚫는다.
+                        if (!isOpen && i != 0)
+                            BreakingWall(ref GameMap, nowPos, nowPos - right2);
+                        isOpen = false;
+                    }
+                }           
+            }
+        }
+    }
+
+    void MapMaking_Stack(ref Map GameMap)
+    {
+        // 스택을 이용한 메이즈 알고리즘
         Vector2[] stacks = new Vector2[(int)Size.x*(int)Size.y];
         int top = -1;
         stacks[++top] = new Vector2(0, 0);
         GameMap.Rooms[0, 0].isFind = true;
         int cnt; // 진행 가능한 부분이 았는지 확인
-        while(top >= 0)
+        int num = 0;
+        while(true)
         {
-            Vector2 NextRoom = stacks[top--];       
+            if (top == -1)
+                break;
+            Vector2 NextRoom = stacks[top];
             cnt = getCnt(GameMap, NextRoom);
-
-            if (cnt>0)
+            if (cnt > 0)
             {
-                while(true)
+                while (true)
                 {
                     int i = UnityEngine.Random.Range(0, 4);
-                    if(i==0)//위
+                    if (i == 0)//위
                     {
                         if (NextRoom.y < RoomNumber.y - 1 && !GameMap.Rooms[(int)NextRoom.x, (int)NextRoom.y + 1].isFind)
                         {
@@ -204,13 +312,19 @@ public class GameManager : MonoBehaviour
                             break;
                         }
                     }
-                    
+
                 }
                 stacks[++top] = NextRoom;
                 GameMap.Rooms[(int)NextRoom.x, (int)NextRoom.y].isFind = true;
             }
+            else
+            {
+                top--;
+            }
         }
     }
+
+    #endregion
 
     /// <summary>
     /// 상하좌우 막혀있는지 아닌지 파악하는 함수
@@ -224,7 +338,6 @@ public class GameManager : MonoBehaviour
     int getCnt(Map GameMap, Vector2 NextRoom)
     {
         int cnt = 0;
-
         // 위, 아래, 왼쪽, 오른쪽이 되는지 확인
         if (NextRoom.x > 0 && !GameMap.Rooms[(int)NextRoom.x - 1, (int)NextRoom.y].isFind)
         {
@@ -242,7 +355,6 @@ public class GameManager : MonoBehaviour
         {
             cnt++;
         }
-
         return cnt;
     }
 
@@ -256,10 +368,34 @@ public class GameManager : MonoBehaviour
     /// <param name="after"> 이후로 이동할 위치 </param>
     void BreakingWall(ref Map GameMap, Vector2 before, Vector2 after)
     {
+        // 이전위치와 이후위치 사이의 벽을 희게 바꿔준다.
+        // x,y -> x+1, y or x,y -> x,y+1
+        // 이때, x, y 의 위치는 (x,y)*(RoomSize+MountainWidth) ~ (x,y) * (RoomSize+MountainWidth) + RoomSize
+        // x+1 인경우 before.x.end ~ after.x.start , before.y.start ~ after.y.end
 
+        if (before.x < after.x || before.y < after.y)
+        {
+            for (int i = (int)(before.x * (RoomSize.x + mountainWidth)+mountainWidth); i < (after.x+1) * (RoomSize.x + mountainWidth); i++)
+            {
+                for (int j = (int)(before.y * (RoomSize.y + mountainWidth) + mountainWidth); j < (after.y+1) * (RoomSize.y + mountainWidth); j++)
+                {
+                    GameMap.Tiles[i, j].isGo = true;
+                }
+            }
+        }
+        else
+        {
+            for (int i = (int)(after.x * (RoomSize.x + mountainWidth) + mountainWidth); i < (before.x+1) * (RoomSize.x + mountainWidth); i++)
+            {
+                for (int j = (int)(after.y * (RoomSize.y + mountainWidth) + mountainWidth); j < (before.y+1) * (RoomSize.y + mountainWidth); j++)
+                {
+                    GameMap.Tiles[i, j].isGo = true;
+                }
+            }
+        }
     }
 
-    void MapScaling(ref Map GameMap)
+    void MountainScaling(ref Map GameMap)
     {
         Map reflica = GameMap;// reflica 에서 변경시킨뒤, 1회의 자동화가 끝나면 동기화
         // 세포 자동화를 수행한다.
@@ -270,9 +406,14 @@ public class GameManager : MonoBehaviour
             {
                 for (int j = 0; j < Size.y; j++)
                 {
-                    if (Cellular(ref GameMap,i,j)<isMountainNum)
+                    // Cellular 함수를 통해 주위 조건의 개수 확인, 지정조건(isMountainNum) 보다 크면 땅으로, 아니면 벽으로 변환
+                    if (Cellular(ref GameMap,i,j) > isMountainNum)
                     {
-                        //reflica.Tiles[i,j]
+                        reflica.Tiles[i, j].isGo = true;
+                    }
+                    else
+                    {
+                        reflica.Tiles[i, j].isGo = false;
                     }
                 }
             }
@@ -300,23 +441,33 @@ public class GameManager : MonoBehaviour
                     continue;
                 else
                 {
-                    if(GameMap.Tiles[x+i,y+j].isGo)
+                    // 여기서 주위 8칸을 확인, 조건에 맞을수록 점수가 1씩 늘어난다.
+                    if(GameMap.Tiles[x+i,y+j].isGo) // true일때(땅일때) result++된다
                     {
                         result++;
                     }
                 }
             }
         }
-        return result;
+        return result; // 점수 반환
     }
 
-    void MakingTile(ref Map GameMap)
+    void MakingTile(ref Map GameMap,ref GameObject[,] MapObjects)
     {
         for(int i=0;i<Size.x;i++)
         {
             for(int j=0;j<Size.y;j++)
             {
+                if(GameMap.Tiles[i,j].isGo)
+                {
+                    MapObjects[i, j] = Instantiate(Tiles);
+                }
+                else
+                {
+                    MapObjects[i, j] = Instantiate(Walls);
+                }
 
+                MapObjects[i, j].transform.position = firstPos + right * (i*(TileSize.x)) + up * (j*TileSize.y);
             }
         }
     }

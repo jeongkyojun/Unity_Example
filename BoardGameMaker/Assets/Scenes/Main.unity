@@ -848,19 +848,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 31f814941a560434da7131f8d393d234, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Walls:
-  - {fileID: 2965382620324386164, guid: 62f23e0ef20e67a4e9a055112f4a8852, type: 3}
-  Tiles:
-  - {fileID: 2900130223403430794, guid: 0b673b1217764974ab0c3725122aa4d5, type: 3}
+  Walls: {fileID: 2965382620324386164, guid: 62f23e0ef20e67a4e9a055112f4a8852, type: 3}
+  Tiles: {fileID: 2900130223403430794, guid: 0b673b1217764974ab0c3725122aa4d5, type: 3}
+  TileSize: {x: 2, y: 2}
   player: {fileID: 2143391077}
   monster: {fileID: 6452836147149624457, guid: 64b8bcdc4597a4b409a8720bfb47eee9, type: 3}
+  firstPos: {x: 1, y: 1, z: 0}
   Size: {x: 114, y: 114}
   isGroundPercent: 0
   GroundSetNumber: 0
   rotateNumber: 0
-  isMountainNum: 0
-  RoomNumber: {x: 9, y: 9}
-  RoomSize: {x: 0, y: 0}
+  isMountainNum: 3
+  isMountainNum2: 2
+  RoomNumber: {x: 10, y: 10}
+  RoomSize: {x: 10, y: 10}
   mountainWidth: 3
 --- !u!4 &2131961314
 Transform:
