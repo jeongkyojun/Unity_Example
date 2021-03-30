@@ -89,7 +89,11 @@ public class GameManager : MonoBehaviour
         //MapMaking_Stack(ref GameMap); // 메이즈 생성 알고리즘 3 - 스택
         #endregion
 
-        MountainScaling(ref GameMap); // 산맥 스케일링
+
+
+        //MountainScaling(ref GameMap); // 산맥 스케일링
+
+        MakingRiver(ref GameMap); // 강변 만들기
 
         MakingTile(ref GameMap,ref MapObjects);
     }
@@ -124,39 +128,47 @@ public class GameManager : MonoBehaviour
             }
         }
 
+        //MakingWindow(ref GameMap, mountainWidth, RoomSize, RoomNumber);
+        AllWhite(ref GameMap, Size);
+    }
+
+    #region 초기화 알고리즘
+    // 격자 형태로 초기화
+    void MakingWindow(ref Map GameMap, int mountainWidth, Vector2 RoomSize, Vector2 RoomNumber)
+    {
         // 격자 설정
-        for(int i = 0;i<RoomNumber.x;i++)
+        for (int i = 0; i < RoomNumber.x; i++)
         {
-            for(int j=0;j<RoomNumber.y;j++)
+            for (int j = 0; j < RoomNumber.y; j++)
             {
                 // 여기까지 Room 번호부여
-                for(int a = 0; a<RoomSize.x;a++)
+                for (int a = 0; a < RoomSize.x; a++)
                 {
-                    for(int b = 0; b<RoomSize.y;b++)
+                    for (int b = 0; b < RoomSize.y; b++)
                     {
                         // 이제부터 내부 채우기 -> 시작점 RoomSize.x*i + mountainWidth*i , RoomSize.y*j + mountainWidth * j
                         //(지금은 일단 true/false로만 채움)
-                        GameMap.Tiles[i * (int)(RoomSize.x + mountainWidth)+mountainWidth+a, j * (int)(RoomSize.y + mountainWidth)+mountainWidth+b].isGo = true;
+                        GameMap.Tiles[i * (int)(RoomSize.x + mountainWidth) + mountainWidth + a, j * (int)(RoomSize.y + mountainWidth) + mountainWidth + b].isGo = true;
 
                     }
                 }
             }
         }
         //세로격자 채우기
-        for(int i=0;i<RoomNumber.x;i++)
+        for (int i = 0; i < RoomNumber.x; i++)
         {
-            for(int j=0;j<RoomNumber.y;j++)
+            for (int j = 0; j < RoomNumber.y; j++)
             {
                 for (int a = 0; a < mountainWidth; a++)
                 {
                     for (int b = 0; b < RoomSize.y; b++)
                     {
                         // 벽 만들기(세로)
-                        GameMap.Tiles[(int)(i * (RoomSize.x + mountainWidth) + a), (int)(j * (RoomSize.y + mountainWidth)+ b)].isGo = false;
+                        GameMap.Tiles[(int)(i * (RoomSize.x + mountainWidth) + a), (int)(j * (RoomSize.y + mountainWidth) + b)].isGo = false;
                     }
                 }
 
-                for(int a = 0; a<RoomSize.x+mountainWidth;a++)
+                for (int a = 0; a < RoomSize.x + mountainWidth; a++)
                 {
                     for (int b = 0; b < mountainWidth; b++)
                     {
@@ -167,6 +179,21 @@ public class GameManager : MonoBehaviour
             }
         }
     }
+
+    // 모두 true로 초기화
+    void AllWhite(ref Map GameMap, Vector2 Size)
+    {
+        for (int i = 0; i < Size.x; i++)
+        {
+            for (int j = 0; j < Size.y; j++)
+            {
+                // 이제부터 내부 채우기 -> 시작점 RoomSize.x*i + mountainWidth*i , RoomSize.y*j + mountainWidth * j
+                //(지금은 일단 true/false로만 채움)
+                GameMap.Tiles[i,j].isGo = true;
+            }
+        }
+    }
+    #endregion
 
     #region 메이즈 알고리즘
 
@@ -325,6 +352,130 @@ public class GameManager : MonoBehaviour
     }
 
     #endregion
+
+    #region 베지에 곡선 알고리즘
+
+    Vector2[] Bezier(Vector2 start, Vector2 end,int max)// 2차 베지에 곡선
+    {
+        List<Vector2> info = new List<Vector2>();
+        Vector2 res;
+        // 베지에 곡선을 이용해 곡선이 성립하는 좌표값을 구한다.
+        for(int i=0;i<=max;i++)
+        {
+            res = start+((end - start) / max * i);
+            if(i==0)
+            {
+                info.Add(res);
+            }
+            else if((int)info[info.Count-1].x!=(int)res.x||(int)info[info.Count-1].y!=(int)res.y) // 직전값과 다른값을 가진 경우
+            {
+                info.Add(res); // 저장한다.
+            }
+        }
+        Vector2[] set = new Vector2[info.Count];
+        for(int i=0;i<info.Count;i++)
+        {
+            set[i] = info[i];
+        }
+        return set;
+    }
+
+    Vector2[] Bezier2(Vector2 start, Vector2 middle, Vector2 end, int max) // 3차 베지에 곡선
+    {
+        List<Vector2> info = new List<Vector2>();
+        Vector2 res;
+        // 베지에 곡선을 이용해 곡선이 성립하는 좌표값을 구한다.
+        Vector2[] start2 = Bezier(start, middle, max);
+        Vector2[] end2 = Bezier(middle, end, max);
+        Debug.Log(start2.Length + " & " + end2.Length);
+        for (int i = 0; i <= max; i++)
+        {
+            Debug.Log(i + " : " +(float)start2.Length/max*i + " , "+ (float)end2.Length/max*i);
+            res = start2[(int)(((float)start2.Length - 1) / max * i)] + ((end2[(int)(((float)end2.Length-1)/max*i)]-start2[(int)(((float)start2.Length-1)/max*i)]))/max*i;
+            // res = start2 + (end2-start2)/max*i
+            if (i == 0)
+            {
+                info.Add(res);
+            }
+            else if ((int)info[info.Count - 1].x != (int)res.x || (int)info[info.Count - 1].y != (int)res.y) // 직전값과 다른값을 가진 경우
+            {
+                info.Add(res); // 저장한다.
+            }
+        }
+        Vector2[] set = new Vector2[info.Count];
+        for (int i = 0; i < info.Count; i++)
+        {
+            set[i] = info[i];
+        }
+        return set;
+    }
+
+    Vector2[] BezierSet(Vector2[] poses)
+    {
+        List<Vector2> info = new List<Vector2>();
+        List<List<Vector2>> infoMat = new List<List<Vector2>>();
+        int rotate = poses.Length;
+        
+        Vector2[] set = new Vector2[info.Count];
+        for(int i=0;i<info.Count;i++)
+        {
+            set[i] = info[i];
+        }
+        return set;
+    }
+
+    #endregion
+
+    void MakingRiver (ref Map GameMap)
+    {
+        int x, beforeWidth,middleWidth;
+        Vector2 bef, now, middle;
+        Vector2[] Line1,Line2;
+
+        //기본 설정 - 초기값
+        x = mountainWidth;
+        // 무작위 지점을 구한다. 
+        int RiverWidth = UnityEngine.Random.Range(3, 5);
+        int y = UnityEngine.Random.Range(0, (int)Size.y - RiverWidth); // 특정 지점 설정
+        now = x * right + y * up;
+
+        middleWidth = RiverWidth;
+        middle = now;
+
+        // 2차 값
+        RiverWidth = UnityEngine.Random.Range(3, 5);
+        y = UnityEngine.Random.Range(0, (int)Size.y - RiverWidth); // 특정 지점 설정
+        now = x * right + y * up;
+
+        beforeWidth = middleWidth;
+        bef = middle;
+
+        middleWidth = RiverWidth;
+        middle = now;
+
+        for (int i = 2; i < RoomNumber.x; i++)
+        {
+            x = i * ((int)RoomSize.x + mountainWidth) + mountainWidth;
+            // 무작위 지점을 방마다 구한다. 
+            RiverWidth = UnityEngine.Random.Range(3, 5);
+            y = UnityEngine.Random.Range(0, (int)Size.y - RiverWidth); // 특정 지점 설정
+            now = x * right2 + y * up2;
+
+            Line1 = Bezier2(bef, middle, now, 100);
+            //Line2 = Bezier(bef + beforeWidth * up2, now + RiverWidth * up2, 100);
+
+            for(int j=0;j<Line1.Length;j++)
+            {
+                GameMap.Tiles[(int)Line1[j].x, (int)Line1[j].y].isGo = false;
+            }
+
+            beforeWidth = middleWidth;
+            bef = middle;
+
+            middleWidth = RiverWidth;
+            middle = now;
+        }
+    }
 
     /// <summary>
     /// 상하좌우 막혀있는지 아닌지 파악하는 함수
