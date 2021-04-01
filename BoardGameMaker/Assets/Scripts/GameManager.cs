@@ -31,6 +31,13 @@ public struct Position
     public Environment Env; // 환경(열거형) - 평야, 숲, 강 등을 확인한다.
 }
 
+public struct Box
+{
+    Vector2 startPoint;
+    Vector2 Size;
+    Vector2 endPoint;
+}
+
 public class GameManager : MonoBehaviour
 {
     [Header("게임 오브젝트 설정")]
@@ -63,6 +70,7 @@ public class GameManager : MonoBehaviour
 
     public Map GameMap; // 맵 저장 정보
     public GameObject[,] MapObjects;
+    public Room[] Rooms;
 
     Vector3 up = Vector3.up;
     Vector3 right = Vector3.right;
@@ -86,14 +94,12 @@ public class GameManager : MonoBehaviour
         // 미로 생성 후, 세포자동화 수행시 산맥이 생성되지 않을까 해서 만들었으나, 안되서 주석처리함
         //MapMaking_BST(ref GameMap); // 메이즈 생성 알고리즘 1 - 이진탐색트리
         //MapMaking_SideWinder(ref GameMap); // 메이즈 생성 알고리즘 2 - 사이드와인더
-        //MapMaking_Stack(ref GameMap); // 메이즈 생성 알고리즘 3 - 스택
+        MapMaking_Stack(ref GameMap); // 메이즈 생성 알고리즘 3 - 스택
         #endregion
 
+        MountainScaling(ref GameMap); // 산맥 스케일링
 
-
-        //MountainScaling(ref GameMap); // 산맥 스케일링
-
-        MakingRiver(ref GameMap); // 강변 만들기
+        //MakingRiver(ref GameMap); // 강변 만들기
 
         MakingTile(ref GameMap,ref MapObjects);
     }
@@ -128,8 +134,16 @@ public class GameManager : MonoBehaviour
             }
         }
 
-        //MakingWindow(ref GameMap, mountainWidth, RoomSize, RoomNumber);
-        AllWhite(ref GameMap, Size);
+        #region 초기 맵 생성 알고리즘
+        // 격자모양 생성 - 메이즈 생성 알고리즘 생성 시 이 알고리즘을 사용해야 한다.
+        MakingWindow(ref GameMap, mountainWidth, RoomSize, RoomNumber);
+        
+        // 모두 하얗게 생성
+        //AllWhite(ref GameMap, Size);
+
+        //테두리만 생성
+        //MakingOneRoom(ref GameMap, mountainWidth, Size);
+        #endregion
     }
 
     #region 초기화 알고리즘
@@ -193,6 +207,24 @@ public class GameManager : MonoBehaviour
             }
         }
     }
+
+    // 테두리를 제외하고 true로 초기화
+    void MakingOneRoom(ref Map GameMap, int border, Vector2 Size)
+    {
+        for (int i = 0; i < Size.x; i++)
+        {
+            for (int j = 0; j < Size.y; j++)
+            {
+                if (i < border || j < border)
+                    GameMap.Tiles[i, j].isGo = false;
+                else if (i >= Size.x - border || j >= Size.y - border)
+                    GameMap.Tiles[i, j].isGo = false;
+                else
+                    GameMap.Tiles[i, j].isGo = true;
+            }
+        }
+    }
+
     #endregion
 
     #region 메이즈 알고리즘
@@ -355,7 +387,7 @@ public class GameManager : MonoBehaviour
 
     #region 베지에 곡선 알고리즘
 
-    Vector2[] Bezier(Vector2 start, Vector2 end,int max)// 2차 베지에 곡선
+    Vector2[] Bezier(Vector2 start, Vector2 end,int max)// 1차 베지에 곡선(선형)
     {
         List<Vector2> info = new List<Vector2>();
         Vector2 res;
@@ -380,7 +412,7 @@ public class GameManager : MonoBehaviour
         return set;
     }
 
-    Vector2[] Bezier2(Vector2 start, Vector2 middle, Vector2 end, int max) // 3차 베지에 곡선
+    Vector2[] Bezier2(Vector2 start, Vector2 middle, Vector2 end, int max) // 2차 베지에 곡선(곡선형)
     {
         List<Vector2> info = new List<Vector2>();
         Vector2 res;
@@ -410,70 +442,50 @@ public class GameManager : MonoBehaviour
         return set;
     }
 
-    Vector2[] BezierSet(Vector2[] poses)
+    Vector2[] BezierSet(Vector2[] poses,int max)
     {
-        List<Vector2> info = new List<Vector2>();
-        List<List<Vector2>> infoMat = new List<List<Vector2>>();
-        int rotate = poses.Length;
-        
-        Vector2[] set = new Vector2[info.Count];
-        for(int i=0;i<info.Count;i++)
+        Vector2[] result = new Vector2[max];
+        Vector2[,] infoMat = new Vector2[max, max];
+        Vector2[,] infoMatTmp = new Vector2[max, max];
+        Vector2 res;
+
+        for(int i=0;i<poses.Length-1;i++)
         {
-            set[i] = info[i];
+            for(int j=0;j<=max;j++)
+            {
+                // res 값은 출발지 + (목적지-출발지) / 최대 값 * 현재 값
+                infoMat[i,j] = poses[i] + ((poses[i + 1] - poses[i]) / max * i);
+            }
         }
-        return set;
+
+        return result;
     }
 
     #endregion
 
     void MakingRiver (ref Map GameMap)
     {
-        int x, beforeWidth,middleWidth;
+        int x,y, riverWidth;
         Vector2 bef, now, middle;
-        Vector2[] Line1,Line2;
+        Vector2[] upLine = new Vector2[(int)RoomNumber.x];
+        Vector2[] downLine = new Vector2[(int)RoomNumber.x];
 
-        //기본 설정 - 초기값
-        x = mountainWidth;
-        // 무작위 지점을 구한다. 
-        int RiverWidth = UnityEngine.Random.Range(3, 5);
-        int y = UnityEngine.Random.Range(0, (int)Size.y - RiverWidth); // 특정 지점 설정
-        now = x * right + y * up;
+        Vector2[] RiverSide1, RiverSide2;
 
-        middleWidth = RiverWidth;
-        middle = now;
-
-        // 2차 값
-        RiverWidth = UnityEngine.Random.Range(3, 5);
-        y = UnityEngine.Random.Range(0, (int)Size.y - RiverWidth); // 특정 지점 설정
-        now = x * right + y * up;
-
-        beforeWidth = middleWidth;
-        bef = middle;
-
-        middleWidth = RiverWidth;
-        middle = now;
-
-        for (int i = 2; i < RoomNumber.x; i++)
+        for (int i = 0; i < RoomNumber.x; i++)
         {
+            riverWidth = UnityEngine.Random.Range(3,10);
             x = i * ((int)RoomSize.x + mountainWidth) + mountainWidth;
-            // 무작위 지점을 방마다 구한다. 
-            RiverWidth = UnityEngine.Random.Range(3, 5);
-            y = UnityEngine.Random.Range(0, (int)Size.y - RiverWidth); // 특정 지점 설정
-            now = x * right2 + y * up2;
+            y = UnityEngine.Random.Range(0, (int)Size.y - riverWidth);
+            upLine[i] = right2 * x + up2 * y;
+            downLine[i] = right2 * x + up2 * (y + riverWidth);
+        }
 
-            Line1 = Bezier2(bef, middle, now, 100);
-            //Line2 = Bezier(bef + beforeWidth * up2, now + RiverWidth * up2, 100);
+        RiverSide1 = BezierSet(upLine, 100);
 
-            for(int j=0;j<Line1.Length;j++)
-            {
-                GameMap.Tiles[(int)Line1[j].x, (int)Line1[j].y].isGo = false;
-            }
-
-            beforeWidth = middleWidth;
-            bef = middle;
-
-            middleWidth = RiverWidth;
-            middle = now;
+        for (int j = 0; j < RiverSide1.Length; j++)
+        {
+            GameMap.Tiles[(int)RiverSide1[j].x, (int)RiverSide1[j].y].isGo = false;
         }
     }
 
