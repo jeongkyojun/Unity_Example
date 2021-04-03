@@ -855,14 +855,11 @@ MonoBehaviour:
   monster: {fileID: 6452836147149624457, guid: 64b8bcdc4597a4b409a8720bfb47eee9, type: 3}
   firstPos: {x: 1, y: 1, z: 0}
   Size: {x: 114, y: 114}
-  isGroundPercent: 0
-  GroundSetNumber: 0
-  rotateNumber: 0
-  isMountainNum: 3
-  isMountainNum2: 2
   RoomNumber: {x: 10, y: 10}
   RoomSize: {x: 10, y: 10}
-  mountainWidth: 3
+  WallWidth: 3
+  BoxNumber: 15
+  roadWidth: 5
 --- !u!4 &2131961314
 Transform:
   m_ObjectHideFlags: 0
