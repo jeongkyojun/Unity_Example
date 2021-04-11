@@ -37,9 +37,8 @@ public struct Position
 
 public struct Box
 {
-    Vector2 startPoint;
-    Vector2 Size;
-    Vector2 endPoint;
+    Vector2 Size; // 방 크기
+    Vector2 Point; // 시작 위치
 }
 
 public class GameManager : MonoBehaviour
@@ -68,7 +67,7 @@ public class GameManager : MonoBehaviour
 
     public Map GameMap; // 맵 저장 정보
     public GameObject[,] MapObjects;
-    public Room[] Rooms;
+    public Box[] Boxes;
 
     Vector3 up = Vector3.up;
     Vector3 right = Vector3.right;
@@ -79,6 +78,8 @@ public class GameManager : MonoBehaviour
     Vector2 right2 = Vector2.right;
     Vector2 one2 = Vector2.one;
 
+    Vector2 startPoint;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -87,9 +88,11 @@ public class GameManager : MonoBehaviour
 
         InitMaps(ref GameMap); // 구조체 선언 및 초기화 작업 실행 -> 격자형 구조 생성
 
-        GettingRoom(ref GameMap, BoxNumber);
-        
-        //MapMaking_Stack(ref GameMap); // 메이즈 생성 알고리즘 3 - 스택
+        GettingRoom(ref GameMap, BoxNumber); // 방 생성 + 번호 부여
+
+        startPoint = GetStartPoint(GameMap);
+
+        MakingDungeon_Stack(ref GameMap,startPoint);
 
         MakingTile(ref GameMap,ref MapObjects);
     }
@@ -102,31 +105,27 @@ public class GameManager : MonoBehaviour
     // 구조체 선언 + 맵 초기화
     void InitMaps(ref Map GameMap)
     {
+        #region 구조체 선언 + 시드설정
         // 구조체 크기 할당함수
         GameMap = new Map();
-        //GameMap.Seed = 00000042;
+        //GameMap.Seed = 00000042; // 시드 설정(42)
         GameMap.Seed = UnityEngine.Random.Range(0, 100000000);
         UnityEngine.Random.InitState(GameMap.Seed);
 
-        
+
         GameMap.Tiles = new Position[(int)Size.x, (int)Size.y]; // 타일 크기 설정
         GameMap.Rooms = new Room[(int)RoomNumber.x, (int)RoomNumber.y]; // 룸 설정
 
-        MapObjects = new GameObject[(int)Size.x,(int)Size.y];
+        MapObjects = new GameObject[(int)Size.x, (int)Size.y];
 
-        for(int i=0;i<RoomNumber.x;i++)
-        {
-            for(int j=0;j<RoomNumber.y;j++)
-            {
-                GameMap.Rooms[i, j].isFind = false;
-                GameMap.Rooms[i, j].RoomStartNumber = new Vector2((i * (RoomSize.x+WallWidth)), (j * (RoomSize.y + WallWidth)));
-            }
-        }
 
-        #region 초기 맵 생성 알고리즘
-        // 격자모양 생성 - 기본 통로형 생성
-        //MakingWindow(ref GameMap, WallWidth,RoomSize, RoomNumber);
-        MakingRoom(ref GameMap, WallWidth,roadWidth, RoomSize, RoomNumber);
+        #endregion
+
+        #region
+
+        // 격자모양으로 맵 생성
+        MakingRoom(ref GameMap, WallWidth, roadWidth, RoomSize, RoomNumber);
+        
         #endregion
     }
 
@@ -181,39 +180,6 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    void MakingRoom(ref Map GameMap, int WallWidth, int RoadWidth, Vector2 RoomSize, Vector2 RoomNumber)
-    {
-        for(int i=0;i<Size.x;i++)
-        {
-            for(int j=0;j<Size.y;j++)
-            {
-                GameMap.Tiles[i, j].isGo = false;
-            }
-        }
-
-        // 격자 설정
-        for (int i = 0; i < RoomNumber.x; i++)
-        {
-            for (int j = 0; j < RoomNumber.y; j++)
-            {
-                // roomsize 중간에 roadsize만큼만 길 뚫기
-                // -> ~(roomsize - roadsize)/2 , (roomsize+roadsize)/2 ~
-                // 여기까지 Room 번호부여
-                for (int a = (int)(RoomSize.x-RoadWidth)/2; a < (RoomSize.x+RoadWidth)/2; a++)
-                {
-                    for (int b = (int)(RoomSize.y-RoadWidth)/2; b < (RoomSize.y+RoadWidth)/2; b++)
-                    {
-                        // 이제부터 내부 채우기 -> 시작점 RoomSize.x*i + WallWidth*i , RoomSize.y*j + WallWidth * j
-                        //(지금은 일단 true/false로만 채움)
-                        GameMap.Tiles[i * (int)(RoomSize.x + WallWidth) + WallWidth + a,
-                            j * (int)(RoomSize.y + WallWidth) + WallWidth + b].isGo = true;
-
-                    }
-                }
-            }
-        }
-    }
-
     // 모두 true로 초기화
     void AllWhite(ref Map GameMap, Vector2 Size)
     {
@@ -247,6 +213,43 @@ public class GameManager : MonoBehaviour
 
     #endregion
 
+    #region 던전 만드는 알고리즘
+
+    // 격자형태 틀 생성
+    void MakingRoom(ref Map GameMap, int WallWidth, int RoadWidth, Vector2 RoomSize, Vector2 RoomNumber)
+    {
+        for (int i = 0; i < Size.x; i++)
+        {
+            for (int j = 0; j < Size.y; j++)
+            {
+                GameMap.Tiles[i, j].isGo = false;
+            }
+        }
+
+        // 격자 설정
+        for (int i = 0; i < RoomNumber.x; i++)
+        {
+            for (int j = 0; j < RoomNumber.y; j++)
+            {
+                // roomsize 중간에 roadsize만큼만 길 뚫기
+                // -> ~(roomsize - roadsize)/2 , (roomsize+roadsize)/2 ~
+                // 여기까지 Room 번호부여
+                for (int a = (int)(RoomSize.x - RoadWidth) / 2; a < (RoomSize.x + RoadWidth) / 2; a++)
+                {
+                    for (int b = (int)(RoomSize.y - RoadWidth) / 2; b < (RoomSize.y + RoadWidth) / 2; b++)
+                    {
+                        // 이제부터 내부 채우기 -> 시작점 RoomSize.x*i + WallWidth*i , RoomSize.y*j + WallWidth * j
+                        //(지금은 일단 true/false로만 채움)
+                        GameMap.Tiles[i * (int)(RoomSize.x + WallWidth) + WallWidth + a,
+                            j * (int)(RoomSize.y + WallWidth) + WallWidth + b].isGo = true;
+
+                    }
+                }
+            }
+        }
+    }
+
+    // 방 생성 및 번호 부여
     void GettingRoom(ref Map GameMap, int BoxNumbers)
     {
         int RoomSizex, RoomSizey;
@@ -254,45 +257,30 @@ public class GameManager : MonoBehaviour
         for (int i=0;i<BoxNumbers;i++)
         {
             // 방의 크기 무작위 생성 -> 1x1 ~ 3x3까지
-            RoomSizex = UnityEngine.Random.Range(1, 4);
-            RoomSizey = UnityEngine.Random.Range(1, RoomSizex+2);
+            RoomSizex = UnityEngine.Random.Range(1, 5);
+            RoomSizey = UnityEngine.Random.Range(1, RoomSizex+1);
 
+            // 방의 생성 시작점 설정(좌측 최하단 기준)
             pointX = UnityEngine.Random.Range(0, (int)RoomNumber.x - RoomSizex);
             pointY = UnityEngine.Random.Range(0, (int)RoomNumber.y - RoomSizey);
 
+            // 방의 생성하는 범위 내에 겹치는 방이 없다면
             if (isRoomSettingOK(GameMap, pointX, pointY, RoomSizex, RoomSizey))
             {
-                for(int x = pointX; x<pointX+RoomSizex;x++)
+                for(int x = pointX; x<pointX+RoomSizex;x++) // 해당 지역을 방으로 만든다.
                 { 
                     for (int y=pointY;y<pointY+RoomSizey;y++)
                     {
-                        OpenRoom(ref GameMap, x, y);
-                        GameMap.Rooms[x, y].isRoom = true;
-                        /*
-                         * 이후 방 번호 부여, 정보 저장은 여기서
-                         */
+                        GameMap.Rooms[x, y].isRoom = true; // 방으로 표시
+                        GameMap.Rooms[x, y].RoomNumber = i; // 방 번호 부여
+
                     }
                 }
                 MakingBigRooms(ref GameMap, pointX, pointY, RoomSizex, RoomSizey);
             }
-            else
+            else // 겹치는 방이 있을경우 직전 상태로 돌아간다.
             {
                 i--;
-            }
-        }
-    }
-
-    void OpenRoom(ref Map GameMap,int RoomNumberx, int RoomNumbery)
-    {
-        for (int a = 0; a < RoomSize.x; a++)
-        {
-            for (int b = 0; b < RoomSize.y; b++)
-            {
-                // 이제부터 내부 채우기 -> 시작점 RoomSize.x*i + WallWidth*i , RoomSize.y*j + WallWidth * j
-                //(지금은 일단 true/false로만 채움)
-                GameMap.Tiles[RoomNumberx * (int)(RoomSize.x + WallWidth) + WallWidth + a,
-                    RoomNumbery * (int)(RoomSize.y + WallWidth) + WallWidth + b].isGo = true;
-
             }
         }
     }
@@ -311,10 +299,116 @@ public class GameManager : MonoBehaviour
     }
 
     // 여러 블록을 합쳐 큰 하나의 방으로 변환
-    void MakingBigRooms(ref Map GameMap, int x, int y, int Sizex, int Sizey)
+    void MakingBigRooms(ref Map GameMap, int x, int y, int Sizex, int Sizey) // x,y : 방의 번호, Sizex, Sizey : 방의 크기
     {
-
+        //x ~ x+Sizex-1 , y ~ y+Sizey-1 까지 범위를 방으로 변환
+        // wall + (RoomSize + wall)*x ~ (RoomSize)*(x+Sizex-1) - wall 까지
+        //
+        for(int i=x*((int)RoomSize.x+WallWidth)+WallWidth; i<(x+Sizex)*(RoomSize.x + WallWidth); i++)
+        {
+            for(int j=y*((int)RoomSize.y+WallWidth) + WallWidth; j<(y+Sizey) * (RoomSize.y +WallWidth); j++)
+            {
+                GameMap.Tiles[i, j].isGo = true;
+            }
+        }
     }
+
+    Vector2 GetStartPoint(Map GameMap)
+    {
+        Vector2 point = Vector2.zero;
+        return point;
+    }
+
+    void MakingDungeon_Stack(ref Map GameMap, Vector2 StartPoint)
+    {
+        Vector2[] stacks = new Vector2[(int)(RoomSize.x * RoomSize.y)];
+        int top = -1;
+        stacks[++top] = StartPoint;
+        Vector2 roomPoint;
+
+        while(top>-1)
+        {
+            Debug.Log(top);
+            roomPoint = stacks[top];
+            if (getCnt(GameMap, roomPoint) > 0)// 자체가 방이거나, 주위에 아직 확인 안한 칸이 있을 경우
+            {
+                while (true)
+                {
+                    int i = UnityEngine.Random.Range(0, 4);
+                    Debug.Log("i : " + i);
+                    if (i == 0)//위
+                    {
+                        if (roomPoint.y < RoomNumber.y - 1 && !GameMap.Rooms[(int)roomPoint.x, (int)roomPoint.y + 1].isFind)
+                        {
+                            Debug.Log("Break");
+                            BreakingWall2(ref GameMap, roomPoint, roomPoint + Vector2.up);
+                            roomPoint += Vector2.up;
+                            break;
+                        }
+                    }
+                    if (i == 1)//아래
+                    {
+                        if (roomPoint.y > 0 && !GameMap.Rooms[(int)roomPoint.x, (int)roomPoint.y - 1].isFind)
+                        {
+                            BreakingWall2(ref GameMap, roomPoint, roomPoint - Vector2.up);
+                            roomPoint -= Vector2.up;
+                            break;
+                        }
+                    }
+
+                    if (i == 2)//왼쪽
+                    {
+                        if (roomPoint.x > 0 && !GameMap.Rooms[(int)roomPoint.x - 1, (int)roomPoint.y].isFind)
+                        {
+                            BreakingWall2(ref GameMap, roomPoint, roomPoint - Vector2.right);
+                            roomPoint -= Vector2.right;
+                            break;
+                        }
+                    }
+
+                    if (i == 3)//오른쪽
+                    {
+                        if (roomPoint.x < RoomNumber.x - 1 && !GameMap.Rooms[(int)roomPoint.x + 1, (int)roomPoint.y].isFind)
+                        {
+                            BreakingWall2(ref GameMap, roomPoint, roomPoint + Vector2.right);
+                            roomPoint += Vector2.right;
+                            break;
+                        }
+                    }
+                }
+                stacks[++top] = roomPoint;
+                Debug.Log("after : " + top);
+                GameMap.Rooms[(int)roomPoint.x, (int)roomPoint.y].isFind = true;
+            }
+            else
+            {
+                top--;
+            }
+        }
+    }
+
+    void BreakingWall2(ref Map GameMap, Vector2 before, Vector2 after)
+    {
+        // 이전 통로 -> 다음 통로로 이동
+        // i * (int)(RoomSize.x + WallWidth) + WallWidth + (int a = (int)(RoomSize.x - RoadWidth) / 2; a < (RoomSize.x + RoadWidth) / 2; a++)
+        // before -> (int)(before.x * (RoomSize.x+WallWidth) + WallWidth + (RoomSize.x-RoadWidth)/2)
+        for (int i=(before.x<after.x? (int)(before.x * (RoomSize.x + WallWidth) + WallWidth + (RoomSize.x - roadWidth) / 2):
+            (int)(after.x * (RoomSize.x + WallWidth) + WallWidth + (RoomSize.x - roadWidth) / 2))
+            ;i< (before.x < after.x ? (after.x * (RoomSize.x + WallWidth) + WallWidth + (RoomSize.x + roadWidth) / 2):
+            (before.x * (RoomSize.x + WallWidth) + WallWidth + (RoomSize.x + roadWidth) / 2))
+            ; i++)
+        {
+            for(int j= (before.y < after.y ? (int)(before.y * (RoomSize.y + WallWidth) + WallWidth + (RoomSize.y - roadWidth) / 2) :
+            (int)(after.y * (RoomSize.y + WallWidth) + WallWidth + (RoomSize.y - roadWidth) / 2))
+            ; j< (before.y < after.y ? (after.y * (RoomSize.y + WallWidth) + WallWidth + (RoomSize.y + roadWidth) / 2) :
+            (before.y * (RoomSize.y + WallWidth) + WallWidth + (RoomSize.y + roadWidth) / 2))
+            ; j++)
+            {
+                GameMap.Tiles[i, j].isGo = true;
+            }
+        }
+    }
+    #endregion
 
     #region 메이즈 알고리즘
 
@@ -470,84 +564,6 @@ public class GameManager : MonoBehaviour
                 top--;
             }
         }
-    }
-
-    #endregion
-
-    #region 베지에 곡선 알고리즘
-
-    Vector2[] Bezier(Vector2 start, Vector2 end,int max)// 1차 베지에 곡선(선형)
-    {
-        List<Vector2> info = new List<Vector2>();
-        Vector2 res;
-        // 베지에 곡선을 이용해 곡선이 성립하는 좌표값을 구한다.
-        for(int i=0;i<=max;i++)
-        {
-            res = start+((end - start) / max * i);
-            if(i==0)
-            {
-                info.Add(res);
-            }
-            else if((int)info[info.Count-1].x!=(int)res.x||(int)info[info.Count-1].y!=(int)res.y) // 직전값과 다른값을 가진 경우
-            {
-                info.Add(res); // 저장한다.
-            }
-        }
-        Vector2[] set = new Vector2[info.Count];
-        for(int i=0;i<info.Count;i++)
-        {
-            set[i] = info[i];
-        }
-        return set;
-    }
-
-    Vector2[] Bezier2(Vector2 start, Vector2 middle, Vector2 end, int max) // 2차 베지에 곡선(곡선형)
-    {
-        List<Vector2> info = new List<Vector2>();
-        Vector2 res;
-        // 베지에 곡선을 이용해 곡선이 성립하는 좌표값을 구한다.
-        Vector2[] start2 = Bezier(start, middle, max);
-        Vector2[] end2 = Bezier(middle, end, max);
-        Debug.Log(start2.Length + " & " + end2.Length);
-        for (int i = 0; i <= max; i++)
-        {
-            Debug.Log(i + " : " +(float)start2.Length/max*i + " , "+ (float)end2.Length/max*i);
-            res = start2[(int)(((float)start2.Length - 1) / max * i)] + ((end2[(int)(((float)end2.Length-1)/max*i)]-start2[(int)(((float)start2.Length-1)/max*i)]))/max*i;
-            // res = start2 + (end2-start2)/max*i
-            if (i == 0)
-            {
-                info.Add(res);
-            }
-            else if ((int)info[info.Count - 1].x != (int)res.x || (int)info[info.Count - 1].y != (int)res.y) // 직전값과 다른값을 가진 경우
-            {
-                info.Add(res); // 저장한다.
-            }
-        }
-        Vector2[] set = new Vector2[info.Count];
-        for (int i = 0; i < info.Count; i++)
-        {
-            set[i] = info[i];
-        }
-        return set;
-    }
-
-    Vector2[] BezierSet(Vector2[] poses,int max)
-    {
-        Vector2[] result = new Vector2[max];
-        Vector2[,] infoMat = new Vector2[max, max];
-        Vector2[,] infoMatTmp = new Vector2[max, max];
-        Vector2 res;
-
-        for(int i=0;i<poses.Length-1;i++)
-        {
-            for(int j=0;j<=max;j++)
-            {
-                // res 값은 출발지 + (목적지-출발지) / 최대 값 * 현재 값
-                infoMat[i,j] = poses[i] + ((poses[i + 1] - poses[i]) / max * i);
-            }
-        }
-
-        return result;
     }
 
     #endregion
