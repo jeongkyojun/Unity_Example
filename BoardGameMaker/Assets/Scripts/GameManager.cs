@@ -19,6 +19,7 @@ public struct Room
     public bool isRoom;// 방인지 통로인지 확인
     public int RoomNumber; // 방 번호 확인, 합쳐져 있는 방을 찾는데 사용
     public bool isFind; // 방문여부 확인
+    public bool isConnected; // 방과 연결여부 확인
 
     public int RoomType; // 방 타입 종류 설정
 }
@@ -118,13 +119,14 @@ public class GameManager : MonoBehaviour
 
         MapObjects = new GameObject[(int)Size.x, (int)Size.y];
 
+        Boxes = new Box[BoxNumber];
 
         #endregion
 
         #region
 
         // 격자모양으로 맵 생성
-        MakingRoom(ref GameMap, WallWidth, roadWidth, RoomSize, RoomNumber);
+        //MakingRoom(ref GameMap, WallWidth, roadWidth, RoomSize, RoomNumber);
         
         #endregion
     }
@@ -213,9 +215,9 @@ public class GameManager : MonoBehaviour
 
     #endregion
 
-    #region 던전 만드는 알고리즘
+    #region 던전 만드는 알고리즘 #1
 
-    // 격자형태 틀 생성
+    // 격자형태 틀 생성 -> 필요 없어짐
     void MakingRoom(ref Map GameMap, int WallWidth, int RoadWidth, Vector2 RoomSize, Vector2 RoomNumber)
     {
         for (int i = 0; i < Size.x; i++)
@@ -257,8 +259,8 @@ public class GameManager : MonoBehaviour
         for (int i=0;i<BoxNumbers;i++)
         {
             // 방의 크기 무작위 생성 -> 1x1 ~ 3x3까지
-            RoomSizex = UnityEngine.Random.Range(1, 5);
-            RoomSizey = UnityEngine.Random.Range(1, RoomSizex+1);
+            RoomSizex = UnityEngine.Random.Range(1, 4);
+            RoomSizey = UnityEngine.Random.Range(RoomSizex-1, RoomSizex+2);
 
             // 방의 생성 시작점 설정(좌측 최하단 기준)
             pointX = UnityEngine.Random.Range(0, (int)RoomNumber.x - RoomSizex);
@@ -273,7 +275,6 @@ public class GameManager : MonoBehaviour
                     {
                         GameMap.Rooms[x, y].isRoom = true; // 방으로 표시
                         GameMap.Rooms[x, y].RoomNumber = i; // 방 번호 부여
-
                     }
                 }
                 MakingBigRooms(ref GameMap, pointX, pointY, RoomSizex, RoomSizey);
@@ -285,6 +286,7 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    // 방이 차지할 공간이 있는지를 확인
     bool isRoomSettingOK(Map GameMap, int x,int y, int widthX, int widthY)
     {
         for(int i=x; i<x+widthX;i++)
@@ -306,30 +308,40 @@ public class GameManager : MonoBehaviour
         //
         for(int i=x*((int)RoomSize.x+WallWidth)+WallWidth; i<(x+Sizex)*(RoomSize.x + WallWidth); i++)
         {
-            for(int j=y*((int)RoomSize.y+WallWidth) + WallWidth; j<(y+Sizey) * (RoomSize.y +WallWidth); j++)
+            for(int j=y*((int)RoomSize.y+WallWidth) + WallWidth; j<(y+Sizey)*(RoomSize.y + WallWidth); j++)
             {
                 GameMap.Tiles[i, j].isGo = true;
             }
         }
     }
 
+    //시작 위치 지정
     Vector2 GetStartPoint(Map GameMap)
     {
-        Vector2 point = Vector2.zero;
-        return point;
+        int a, b;
+
+        while (true)
+        {
+            a = UnityEngine.Random.Range(0, (int)RoomNumber.x);
+            b = UnityEngine.Random.Range(0, (int)RoomNumber.y);
+            if(GameMap.Rooms[a,b].isRoom)
+                return a*right2+b*up2;
+        }
     }
 
+    // 스택형식으로 출발점부터 미로 생성, 스택을 거두는 과정에서 방에서 출발한 스택만 길 생성
     void MakingDungeon_Stack(ref Map GameMap, Vector2 StartPoint)
     {
         Vector2[] stacks = new Vector2[(int)(RoomSize.x * RoomSize.y)];
         int top = -1;
         stacks[++top] = StartPoint;
-        Vector2 roomPoint;
+        Vector2 roomPoint,befPoint;
 
         while(top>-1)
         {
             Debug.Log(top);
             roomPoint = stacks[top];
+
             if (getCnt(GameMap, roomPoint) > 0)// 자체가 방이거나, 주위에 아직 확인 안한 칸이 있을 경우
             {
                 while (true)
@@ -341,7 +353,6 @@ public class GameManager : MonoBehaviour
                         if (roomPoint.y < RoomNumber.y - 1 && !GameMap.Rooms[(int)roomPoint.x, (int)roomPoint.y + 1].isFind)
                         {
                             Debug.Log("Break");
-                            BreakingWall2(ref GameMap, roomPoint, roomPoint + Vector2.up);
                             roomPoint += Vector2.up;
                             break;
                         }
@@ -350,7 +361,6 @@ public class GameManager : MonoBehaviour
                     {
                         if (roomPoint.y > 0 && !GameMap.Rooms[(int)roomPoint.x, (int)roomPoint.y - 1].isFind)
                         {
-                            BreakingWall2(ref GameMap, roomPoint, roomPoint - Vector2.up);
                             roomPoint -= Vector2.up;
                             break;
                         }
@@ -360,7 +370,6 @@ public class GameManager : MonoBehaviour
                     {
                         if (roomPoint.x > 0 && !GameMap.Rooms[(int)roomPoint.x - 1, (int)roomPoint.y].isFind)
                         {
-                            BreakingWall2(ref GameMap, roomPoint, roomPoint - Vector2.right);
                             roomPoint -= Vector2.right;
                             break;
                         }
@@ -370,7 +379,6 @@ public class GameManager : MonoBehaviour
                     {
                         if (roomPoint.x < RoomNumber.x - 1 && !GameMap.Rooms[(int)roomPoint.x + 1, (int)roomPoint.y].isFind)
                         {
-                            BreakingWall2(ref GameMap, roomPoint, roomPoint + Vector2.right);
                             roomPoint += Vector2.right;
                             break;
                         }
@@ -379,14 +387,29 @@ public class GameManager : MonoBehaviour
                 stacks[++top] = roomPoint;
                 Debug.Log("after : " + top);
                 GameMap.Rooms[(int)roomPoint.x, (int)roomPoint.y].isFind = true;
+                if (GameMap.Rooms[(int)roomPoint.x, (int)roomPoint.y].isRoom)
+                {
+                    GameMap.Rooms[(int)stacks[top].x, (int)stacks[top].y].isConnected = true;
+                }
+                else
+                {
+                    GameMap.Rooms[(int)stacks[top].x, (int)stacks[top].y].isConnected = false;
+                }
             }
             else
             {
                 top--;
+                if (GameMap.Rooms[(int)roomPoint.x,(int)roomPoint.y].isConnected && top>=0)
+                {
+                    BreakingWall2(ref GameMap, roomPoint, stacks[top]);
+                    GameMap.Rooms[(int)stacks[top].x, (int)stacks[top].y].isConnected = true;
+                }
             }
+            befPoint = roomPoint; // 직전 상태 확인
         }
     }
 
+    // 길 생성 함수
     void BreakingWall2(ref Map GameMap, Vector2 before, Vector2 after)
     {
         // 이전 통로 -> 다음 통로로 이동
@@ -408,6 +431,11 @@ public class GameManager : MonoBehaviour
             }
         }
     }
+    #endregion
+
+    #region 던전 만드는 알고리즘 #2
+
+
     #endregion
 
     #region 메이즈 알고리즘

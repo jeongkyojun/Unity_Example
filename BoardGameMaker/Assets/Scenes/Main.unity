@@ -856,7 +856,7 @@ MonoBehaviour:
   firstPos: {x: 1, y: 1, z: 0}
   Size: {x: 114, y: 114}
   RoomNumber: {x: 10, y: 10}
-  RoomSize: {x: 10, y: 10}
+  RoomSize: {x: 15, y: 15}
   WallWidth: 3
   BoxNumber: 15
   roadWidth: 5
