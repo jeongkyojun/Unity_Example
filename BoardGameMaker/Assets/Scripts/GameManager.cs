@@ -38,8 +38,8 @@ public struct Position
 
 public struct Box
 {
-    Vector2 Size; // 방 크기
-    Vector2 Point; // 시작 위치
+    public Vector2 Size; // 방 크기
+    public Vector2 Point; // 시작 위치
 }
 
 public class GameManager : MonoBehaviour
@@ -93,7 +93,7 @@ public class GameManager : MonoBehaviour
 
         startPoint = GetStartPoint(GameMap);
 
-        MakingDungeon_Stack(ref GameMap,startPoint);
+        MakingDungeon_Stack2(ref GameMap,startPoint);
 
         MakingTile(ref GameMap,ref MapObjects);
     }
@@ -277,6 +277,10 @@ public class GameManager : MonoBehaviour
                         GameMap.Rooms[x, y].RoomNumber = i; // 방 번호 부여
                     }
                 }
+
+                Boxes[i].Size = right2 * RoomSizex + up2 * RoomSizey;
+                Boxes[i].Point = right2 * pointX + up2 * pointY;
+
                 MakingBigRooms(ref GameMap, pointX, pointY, RoomSizex, RoomSizey);
             }
             else // 겹치는 방이 있을경우 직전 상태로 돌아간다.
@@ -406,6 +410,102 @@ public class GameManager : MonoBehaviour
                 }
             }
             befPoint = roomPoint; // 직전 상태 확인
+        }
+    }
+
+    void MakingDungeon_Stack2(ref Map GameMap, Vector2 StartPoint)
+    {
+        Vector2[] stacks = new Vector2[(int)(RoomSize.x * RoomSize.y)];
+        int top = -1;
+        stacks[++top] = StartPoint;
+        Vector2 roomPoint, befPoint;
+
+        while (top > -1)
+        {
+            Debug.Log(top);
+            roomPoint = stacks[top];
+            if (GameMap.Rooms[(int)roomPoint.x, (int)roomPoint.y].isRoom) // 지금 위치가 방인지 아닌지 확인
+            {
+                // 방인 경우, 해당 방 모두를 지나감 처리 한 뒤, 상하좌우 이동시 문의 위치까지 파악하여 뚫는다.
+                int num = GameMap.Rooms[(int)roomPoint.x, (int)roomPoint.y].RoomNumber;
+                // 방 전체를 이동처리
+                for (int i= (int)Boxes[num].Point.x;i<(int)(Boxes[num].Point.x+Boxes[num].Size.x);i++)
+                {
+                    for (int j = (int)Boxes[num].Point.y; j < (int)(Boxes[num].Point.y + Boxes[num].Size.y); j++)
+                    {
+                        GameMap.Rooms[i, j].isFind = true;
+                    }
+                }
+                // 방 방향 정하기
+                // 이후, 해당방향의 몇번째 변에서 이동하는지 정하기
+            }
+            else // 방이 아니라 복도인 경우, 바로 상하좌우로 이동시킨다.
+            {
+                if (getCnt(GameMap, roomPoint) > 0)// 자체가 방이거나, 주위에 아직 확인 안한 칸이 있을 경우
+                {
+                    while (true)
+                    {
+                        int i = UnityEngine.Random.Range(0, 4);
+
+                        if (i == 0)//위
+                        {
+                            if (roomPoint.y < RoomNumber.y - 1 && !GameMap.Rooms[(int)roomPoint.x, (int)roomPoint.y + 1].isFind)
+                            {
+                                Debug.Log("Break");
+                                roomPoint += Vector2.up;
+                                break;
+                            }
+                        }
+                        if (i == 1)//아래
+                        {
+                            if (roomPoint.y > 0 && !GameMap.Rooms[(int)roomPoint.x, (int)roomPoint.y - 1].isFind)
+                            {
+                                roomPoint -= Vector2.up;
+                                break;
+                            }
+                        }
+
+                        if (i == 2)//왼쪽
+                        {
+                            if (roomPoint.x > 0 && !GameMap.Rooms[(int)roomPoint.x - 1, (int)roomPoint.y].isFind)
+                            {
+                                roomPoint -= Vector2.right;
+                                break;
+                            }
+                        }
+
+                        if (i == 3)//오른쪽
+                        {
+                            if (roomPoint.x < RoomNumber.x - 1 && !GameMap.Rooms[(int)roomPoint.x + 1, (int)roomPoint.y].isFind)
+                            {
+                                roomPoint += Vector2.right;
+                                break;
+                            }
+                        }
+                    }
+                    stacks[++top] = roomPoint;
+                    Debug.Log("after : " + top);
+                    GameMap.Rooms[(int)roomPoint.x, (int)roomPoint.y].isFind = true;
+                    if (GameMap.Rooms[(int)roomPoint.x, (int)roomPoint.y].isRoom)
+                    {
+                        GameMap.Rooms[(int)stacks[top].x, (int)stacks[top].y].isConnected = true;
+                    }
+                    else
+                    {
+                        GameMap.Rooms[(int)stacks[top].x, (int)stacks[top].y].isConnected = false;
+                    }
+                }
+                else
+                {
+                    top--;
+                    if (GameMap.Rooms[(int)roomPoint.x, (int)roomPoint.y].isConnected && top >= 0)
+                    {
+                        BreakingWall2(ref GameMap, roomPoint, stacks[top]);
+                        GameMap.Rooms[(int)stacks[top].x, (int)stacks[top].y].isConnected = true;
+                    }
+                }
+                befPoint = roomPoint; // 직전 상태 확인
+            }
         }
     }
 
@@ -625,6 +725,14 @@ public class GameManager : MonoBehaviour
         {
             cnt++;
         }
+        return cnt;
+    }
+
+    int getRoomCnt(Map GameMap, Vector2 NextRoom)
+    {
+        int cnt = 0;
+
+
         return cnt;
     }
 
