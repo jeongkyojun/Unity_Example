@@ -93,7 +93,8 @@ public class GameManager : MonoBehaviour
 
         startPoint = GetStartPoint(GameMap);
 
-        MakingDungeon_Stack2(ref GameMap,startPoint);
+        //MapMaking_Stack(ref GameMap);
+        MakingDungeon_Stack(ref GameMap, startPoint);
 
         MakingTile(ref GameMap,ref MapObjects);
     }
@@ -633,63 +634,76 @@ public class GameManager : MonoBehaviour
         GameMap.Rooms[0, 0].isFind = true;
         int cnt; // 진행 가능한 부분이 았는지 확인
         int num = 0;
-        while(true)
+
+        Vector2 roomPoint;
+
+        while (top > -1)
         {
-            if (top == -1)
-                break;
-            Vector2 NextRoom = stacks[top];
-            cnt = getCnt(GameMap, NextRoom);
-            if (cnt > 0)
+            Debug.Log(top);
+            roomPoint = stacks[top];
+
+            if (getCnt(GameMap, roomPoint) > 0)// 자체가 방이거나, 주위에 아직 확인 안한 칸이 있을 경우
             {
                 while (true)
                 {
                     int i = UnityEngine.Random.Range(0, 4);
+                    Debug.Log("i : " + i);
                     if (i == 0)//위
                     {
-                        if (NextRoom.y < RoomNumber.y - 1 && !GameMap.Rooms[(int)NextRoom.x, (int)NextRoom.y + 1].isFind)
+                        if (roomPoint.y < RoomNumber.y - 1 && !GameMap.Rooms[(int)roomPoint.x, (int)roomPoint.y + 1].isFind)
                         {
-                            BreakingWall(ref GameMap, NextRoom, NextRoom + Vector2.up);
-                            NextRoom += Vector2.up;
+                            Debug.Log("Break");
+                            roomPoint += Vector2.up;
                             break;
                         }
                     }
                     if (i == 1)//아래
                     {
-                        if (NextRoom.y > 0 && !GameMap.Rooms[(int)NextRoom.x, (int)NextRoom.y - 1].isFind)
+                        if (roomPoint.y > 0 && !GameMap.Rooms[(int)roomPoint.x, (int)roomPoint.y - 1].isFind)
                         {
-                            BreakingWall(ref GameMap, NextRoom, NextRoom - Vector2.up);
-                            NextRoom -= Vector2.up;
+                            roomPoint -= Vector2.up;
                             break;
                         }
                     }
 
                     if (i == 2)//왼쪽
                     {
-                        if (NextRoom.x > 0 && !GameMap.Rooms[(int)NextRoom.x - 1, (int)NextRoom.y].isFind)
+                        if (roomPoint.x > 0 && !GameMap.Rooms[(int)roomPoint.x - 1, (int)roomPoint.y].isFind)
                         {
-                            BreakingWall(ref GameMap, NextRoom, NextRoom - Vector2.right);
-                            NextRoom -= Vector2.right;
+                            roomPoint -= Vector2.right;
                             break;
                         }
                     }
 
                     if (i == 3)//오른쪽
                     {
-                        if (NextRoom.x < RoomNumber.x - 1 && !GameMap.Rooms[(int)NextRoom.x + 1, (int)NextRoom.y].isFind)
+                        if (roomPoint.x < RoomNumber.x - 1 && !GameMap.Rooms[(int)roomPoint.x + 1, (int)roomPoint.y].isFind)
                         {
-                            BreakingWall(ref GameMap, NextRoom, NextRoom + Vector2.right);
-                            NextRoom += Vector2.right;
+                            roomPoint += Vector2.right;
                             break;
                         }
                     }
-
                 }
-                stacks[++top] = NextRoom;
-                GameMap.Rooms[(int)NextRoom.x, (int)NextRoom.y].isFind = true;
+                stacks[++top] = roomPoint;
+                Debug.Log("after : " + top);
+                GameMap.Rooms[(int)roomPoint.x, (int)roomPoint.y].isFind = true;
+                if (GameMap.Rooms[(int)roomPoint.x, (int)roomPoint.y].isRoom)
+                {
+                    GameMap.Rooms[(int)stacks[top].x, (int)stacks[top].y].isConnected = true;
+                }
+                else
+                {
+                    GameMap.Rooms[(int)stacks[top].x, (int)stacks[top].y].isConnected = false;
+                }
             }
             else
             {
                 top--;
+                if (GameMap.Rooms[(int)roomPoint.x, (int)roomPoint.y].isConnected && top >= 0)
+                {
+                    BreakingWall(ref GameMap, roomPoint, stacks[top]);
+                    GameMap.Rooms[(int)stacks[top].x, (int)stacks[top].y].isConnected = true;
+                }
             }
         }
     }
