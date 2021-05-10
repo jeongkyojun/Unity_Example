@@ -150,21 +150,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 29e9a99c2bdba6345a7158d06ebfda12, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Land: {fileID: 5730781584384664611}
-  Wall: {fileID: 0}
-  MapSize: {x: 50, y: 30}
-  TileSize: {x: 1.1, y: 1.1}
-  StartPosition: {x: 0.5, y: 0.5}
-  monster_Number: 
-  monster_Health: []
-  monster_AttackPower: []
-  monster_DefendPower: []
-  monster_Speed: []
-  monster_MovePower: 
-  monsters: []
-  Turn: 0
-  MaxTurnNumber: 0
-  monsterCnt: 0
 --- !u!4 &610559989
 Transform:
   m_ObjectHideFlags: 0
@@ -423,6 +408,25 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 8617b52e19c3d0f45bb46b94b424d423, type: 3}
+--- !u!1 &1798143029213064351 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 2276444229779491517, guid: 8617b52e19c3d0f45bb46b94b424d423,
+    type: 3}
+  m_PrefabInstance: {fileID: 1798143029213064350}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1798143029213064352
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1798143029213064351}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 996a9fc5ce16c8d4ea1af00b9f586bd2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  startingHealth: 100
 --- !u!1001 &5730781584384664610
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -492,9 +496,3 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: fc2a3c5d7a7c1d94ebf68943a5d29aa4, type: 3}
---- !u!1 &5730781584384664611 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 6260735096164598542, guid: fc2a3c5d7a7c1d94ebf68943a5d29aa4,
-    type: 3}
-  m_PrefabInstance: {fileID: 5730781584384664610}
-  m_PrefabAsset: {fileID: 0}

@@ -64,10 +64,12 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Assets\Scripts\BtnClicker.cs" />
-    <Compile Include="Assets\Scripts\Controller.cs" />
+    <Compile Include="Assets\Scripts\Enums.cs" />
     <Compile Include="Assets\Scripts\GameManager.cs" />
     <Compile Include="Assets\Scripts\LivingEntity.cs" />
+    <Compile Include="Assets\Scripts\Monster.cs" />
+    <Compile Include="Assets\Scripts\PlayerHealth.cs" />
+    <Compile Include="Assets\Scripts\PlayerMoveMent.cs" />
     <Reference Include="UnityEngine">
       <HintPath>D:/download/Unity/2019.4.16f1/Editor/Data/Managed/UnityEngine/UnityEngine.dll</HintPath>
     </Reference>
